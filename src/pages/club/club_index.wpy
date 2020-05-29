@@ -1,0 +1,557 @@
+<style lang="less">
+  @import url("../../less/config");
+  .show {
+    color: #11111;
+    margin: 26rpx 26rpx 0 26rpx;
+    background: @white;
+    border-radius: 15rpx;
+    padding: 20rpx;
+    display: flex;
+    flex-wrap: wrap;
+    >view {
+      width: 100%;
+    }
+    .info {
+      margin-top: 10rpx;
+      margin-bottom: 10rpx;
+      justify-content: space-between;
+      align-items: center;
+      display: flex;
+      font-size: 1.1rem;
+    }
+    .name {
+      color: @base-color;
+    }
+    .content {
+      margin-bottom: 10rpx;
+      color: #666666;
+      font-size: 0.9rem;
+    }
+  }
+  .add_button{
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    bottom: 60px;
+    right: 10px;
+  }
+  .reload_button{
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    bottom: 10px;
+    right: 10px;
+  }
+  .user {
+    width: 100%;
+    height: 100%;
+    padding: 40rpx;
+    .user-box {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background-color: #ffffff;
+      border-radius: 10rpx;
+      .user-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40rpx;
+        border-bottom: 1px solid #F6F6F6;
+        .avatar {
+          width: 120rpx;
+          height: 120rpx;
+          border-radius: 60rpx;
+        }
+        .txt {
+          font-size: 32rpx;
+          padding: 10rpx 20rpx;
+        }
+        .login {
+          margin-top: 20rpx;
+          color: #1749DC;
+        }
+      }
+      .section {
+        height: 100rpx;
+        font-size: 30rpx;
+        line-height: 100rpx;
+        padding-left: 20rpx;
+        box-sizing: border-box;
+        border-bottom: 1px solid #F6F6F6;
+        .s-label {
+          float: left;
+        }
+        .s-open {
+          float: right;
+          width: 60rpx;
+          padding-left: 20rpx;
+          .s-icon {
+            display: inline-block;
+            box-sizing: border-box;
+            border-right: 3rpx solid #666;
+            border-bottom: 3rpx solid #666;
+            width: 22rpx;
+            height: 22rpx;
+            transform: rotate(-45deg);
+          }
+        }
+      }
+      .my_club {
+        font-size: 27rpx;
+        padding: 10rpx;
+        .info {
+          display: flex;
+          flex-direction: row;
+          border-bottom: 2px solid #F6F6F6;
+          .club_num {
+            padding: 0rpx 20rpx;
+            color: #f06292;
+          }
+          .club_name {
+            font-size: 25rpx;
+          }
+        }
+      }
+      .my_activity {
+        font-size: 27rpx;
+        border-bottom: 2px solid #F6F6F6;
+        .info {
+          display: flex;
+          flex-direction: row;
+          .activity_num {
+            padding: 0rpx 20rpx;
+            color: #f06292;
+          }
+          .activity_name {
+            font-size: 25rpx;
+          }
+        }
+        .activity_time {
+          padding: 0rpx 20rpx;
+        }
+      }
+      .manage {
+        display: flex;
+        flex-direction: row-reverse;
+        color: #f06292;
+        text-decoration: underline;
+      }
+    }
+  }
+</style>
+
+<template>
+  <van-tabs active="{{active}}">
+    <van-tab title="社团详情">
+      <view>
+        <scroll-view scroll-y style="height: {{height}}px" bindscrolltolower="loadClubs">
+          <block wx:for="{{clubs}}" wx:key="{{index}}">
+            <view class="show" @tap="chooseClub" id="{{index}}">
+              <view class="info">
+                <view class="name">{{item.name}}</view>
+              </view>
+              <view class="content">简介：{{item.introduction}}</view>
+            </view>
+          </block>
+        </scroll-view>
+      </view>
+    </van-tab>
+    <van-tab title="近期活动">
+      <view>
+        <scroll-view scroll-y style="height: {{height}}px" bindscrolltolower="loadActivities">
+          <block wx:for="{{activities}}" wx:key="{{index}}">
+            <view class="show" @tap="chooseActivity" id="{{index}}">
+              <view class="info">
+                <view class="name">{{item.name}}</view>
+              </view>
+              <view class="content">举办社团：{{item.club_name}}</view>
+              <view class="content">活动时间：</view>
+              <view>{{item.start_time + ' 至 ' + item.stop_time}}</view>
+              <view class="content">报名时间：</view>
+              <view>{{item.registry_start_time + ' 至 ' + item.registry_stop_time}}</view>
+            </view>
+          </block>
+        </scroll-view>
+      </view>
+    </van-tab>
+    <van-tab title="我的社团">
+      <view class="container">
+        <view class="user">
+          <view class="user-box">
+            <view class="user-header">
+              <image class="avatar" src="{{userInfo.avatar_url}}" />
+              <view class="login">
+                <text class="txt">{{userInfo.name}}</text>
+              </view>
+            </view>
+            <view>
+              <van-collapse value="{{ activeNames }}" bind:change="onChangeCollapse">
+                  <van-collapse-item title="我的社团" name="1">
+                    <block wx:for="{{myClubs}}" wx:key="{{index}}">
+                      <view class="my_club">
+                        <view class="info">
+                          <view class="club_num">{{'社团' + (index+1) + ':'}}</view>
+                          <view class="club_name">{{item.name}}</view>
+                        </view>
+                      </view>
+                    </block>
+                  </van-collapse-item>
+                  <van-collapse-item title="我的活动" name="2">
+                    <block wx:for="{{myActivities}}" wx:key="{{index}}">
+                      <view class="my_activity ">
+                        <view class="info">
+                          <view class="activity_num">{{'活动' + (index+1) + ':'}}</view>
+                          <view class="activity_name">{{item.name}}</view>
+                        </view>
+                        <view class="activity_time">{{item.start_time + ' 至 ' + item.stop_time}}</view>
+                      </view>
+                    </block>
+                  </van-collapse-item>
+                  <van-collapse-item wx:if="{{judge_manager}}" title="社团管理" name="3">
+                    <navigator class="manage" url="./club_manage" open-type="navigate">
+                      <view>进行社团管理及活动发布</view>
+                    </navigator>
+                  </van-collapse-item>
+              </van-collapse>
+            </view>
+          </view>
+        </view>
+      </view>
+    </van-tab>
+  </van-tabs>
+  <view>
+    <image class="reload_button" src="../../assets/icons/reload_button.png" @tap="reload"></image>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '../../api/request'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '社团活动',
+      'usingComponents': {
+        'van-tab': '../../components/vant/tab/index',
+        'van-tabs': '../../components/vant/tabs/index',
+        'van-collapse': '../../components/vant/collapse/index',
+        'van-collapse-item': '../../components/vant/collapse-item/index'
+      }
+    }
+    components = {}
+    data = {
+      userInfo: {},
+      isLogin: false,
+      active: 0,
+      clubs: [],
+      activities: [],
+      myClubs: null,
+      myActivities: null,
+      index: 0,
+      activeNames: [],
+      height: 0,
+      index_clubs: 0,
+      index_activities: 0
+    }
+
+    methods = {
+      // 社团列表触底刷新
+      loadClubs() {
+        // this.clubs = this.clubs.concat(this.clubs)
+        this.getClubs()
+        this.$apply()
+      },
+      // 活动列表触底刷新
+      loadActivities() {
+        // this.activities = this.activities.concat(this.activities)
+        this.getActivities()
+        this.$apply()
+      },
+      // 刷新页面
+      async reload() {
+        this.activities = []
+        this.clubs = []
+        this.index_activities = 0
+        this.index_clubs = 0
+        this.getClubs()
+        this.getActivities()
+        this.getMyClubsAndActivities()
+        wx.showToast({
+          title: '已刷新',
+          icon: 'success',
+          duration: 2000
+        })
+      },
+      onChangeCollapse(event) {
+        this.activeNames = event.detail
+      }
+    }
+
+    onShow() {}
+
+    async onLoad() {
+      if (this.height === 0) {
+        const that = this
+        // 获取页面高度，给scrollview的height参数赋值
+        wx.getSystemInfo({
+          success (res) {
+            that.height = res.windowHeight
+          }
+        })
+      }
+      this.getUser()
+      this.getClubs()
+      this.getActivities()
+      this.getMyClubsAndActivities()
+    }
+
+    // 获取社团信息
+    async getClubs() {
+      var res = await api.request({
+        url: api.uri.getClubs,
+        method: 'GET',
+        data: {
+          wx_id: '',
+          index: this.index_clubs
+        }
+      })
+      if (res.data.status === 400) {
+        wx.showToast({
+          title: '服务器错误' + res.data.errmsg,
+          icon: 'none',
+          duration: 3000
+        })
+      } else if (this.index_clubs !== -1) {
+        this.index_clubs = res.data.data.next_index
+        this.clubs = this.clubs.concat(res.data.data.club_list)
+      } else {
+        wx.showToast({
+          title: '没有更多了',
+          icon: 'success',
+          duration: 2000
+        })
+      }
+      // this.clubs = [
+      //   {
+      //     name: 'Tars星球',
+      //     club_id: '123',
+      //     chairman: '小明',
+      //     introduction: 'Tars 是腾讯从2008年到今天一直在使用的微服务开发框架，2018年成为Linux基金会开源项目，目前支持C++、Java、PHP、Nodejs与Go语言。该框架为用户提供了涉及到开发、运维，以及测试的一整套解决方案，帮助一个产品或者服务快速开发、部署、测试、上线。'
+      //   },
+      //   {
+      //     name: '羽毛球社',
+      //     club_id: '456',
+      //     chairman: '小明',
+      //     introduction: 'sx天下第一'
+      //   },
+      //   {
+      //     name: '美剧社',
+      //     club_id: '789',
+      //     chairman: '小明',
+      //     introduction: 'yx天下第一'
+      //   },
+      //   {
+      //     name: '咸鱼社',
+      //     club_id: '111111',
+      //     chairman: '小明',
+      //     introduction: 'tars天下第一'
+      //   },
+      //   {
+      //     name: 'Tars星球2',
+      //     club_id: '1112222',
+      //     chairman: '小明',
+      //     introduction: 'Tars 是腾讯从2008年到今天一直在使用的微服务开发框架，2018年成为Linux基金会开源项目，目前支持C++、Java、PHP、Nodejs与Go语言。该框架为用户提供了涉及到开发、运维，以及测试的一整套解决方案，帮助一个产品或者服务快速开发、部署、测试、上线。'
+      //   },
+      //   {
+      //     name: '羽毛球社',
+      //     club_id: '1112222',
+      //     chairman: '小明',
+      //     introduction: 'sx天下第一'
+      //   },
+      //   {
+      //     name: '美剧社',
+      //     club_id: '1112222',
+      //     chairman: '小明',
+      //     introduction: 'yx天下第一'
+      //   },
+      //   {
+      //     name: '咸鱼社',
+      //     club_id: '1112222',
+      //     chairman: '小明',
+      //     introduction: 'tars天下第一'
+      //   }
+      // ]
+    }
+    // 获取活动信息
+    async getActivities() {
+      const res = await api.request({
+        url: api.uri.getActivities,
+        method: 'GET',
+        data: {
+          index: this.index_activities
+        }
+      })
+      if (res.data.status === 400) {
+        wx.showToast({
+          title: '服务器错误' + res.data.errmsg,
+          icon: 'none',
+          duration: 3000
+        })
+      } else if (this.index_activities !== -1) {
+        this.index_activities = res.data.data.next_index
+        this.activities = this.activities.concat(res.data.data.activity_list)
+      } else {
+        wx.showToast({
+          title: '没有更多了',
+          icon: 'success',
+          duration: 2000
+        })
+      }
+      // this.activities = [
+      //   {
+      //     name: 'tars学习活动1',
+      //     activity_id: '123',
+      //     sponor: 'tars小助手huang',
+      //     club_name: '学习俱乐部',
+      //     start_time: '2019_08_26 19:36:00',
+      //     stop_time: '2019_08_31 24:00:00',
+      //     registry_start_time: '2019_08_26 20:00:00',
+      //     registry_stop_time: '2019_08_31 20:00:00',
+      //     target_id: '0',
+      //     content: 'tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars蹲'
+      //   },
+      //   {
+      //     name: 'tars学习活动2',
+      //     activity_id: '123',
+      //     sponor: 'tars小助手huang',
+      //     club_name: '学习俱乐部',
+      //     start_time: '2019_08_26 19:36:00',
+      //     stop_time: '2019_08_31 24:00:00',
+      //     registry_start_time: '2019_08_26 20:00:00',
+      //     registry_stop_time: '2019_08_31 20:00:00',
+      //     target_id: '0',
+      //     content: 'tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars蹲'
+      //   },
+      //   {
+      //     name: 'tars学习活动3',
+      //     activity_id: '123',
+      //     sponor: 'tars小助手huang',
+      //     club_name: '学习俱乐部',
+      //     start_time: '2019_08_26 19:36:00',
+      //     stop_time: '2019_08_31 24:00:00',
+      //     registry_start_time: '2019_08_26 20:00:00',
+      //     registry_stop_time: '2019_08_31 20:00:00',
+      //     target_id: '0',
+      //     content: 'tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars蹲'
+      //   }
+      // ]
+      this.activities.forEach(item => {
+        item.start_time = item.start_time.substr(0, 16)
+        item.start_time = item.start_time.replace(/-/g, '.')
+        item.stop_time = item.stop_time.substr(0, 16)
+        item.stop_time = item.stop_time.replace(/-/g, '.')
+        item.registry_start_time = item.registry_start_time.substr(0, 16)
+        item.registry_start_time = item.registry_start_time.replace(/-/g, '.')
+        item.registry_stop_time = item.registry_stop_time.substr(0, 16)
+        item.registry_stop_time = item.registry_stop_time.replace(/-/g, '.')
+      })
+      this.$apply()
+    }
+    // 获取我的社团信息和活动信息列表
+    async getMyClubsAndActivities() {
+      const uid = wepy.getStorageSync('wx_id')
+      // 获取我的社团
+      const resClub = await api.request({
+        url: api.uri.getClubs,
+        method: 'GET',
+        data: {
+          wx_id: uid,
+          index: 0
+        }
+      })
+      if (resClub.data.status === 400) {
+        wx.showToast({
+          title: '服务器错误' + resClub.data.errmsg,
+          icon: 'none',
+          duration: 3000
+        })
+      } else {
+        this.myClubs = resClub.data.data.club_list
+      }
+      // 获取我的活动
+      const resActivity = await api.request({
+        url: api.uri.getUserActivities,
+        method: 'GET',
+        data: {
+          wx_id: uid,
+          index: 0
+        }
+      })
+      if (resActivity.data.status === 400) {
+        wx.showToast({
+          title: '服务器错误' + resActivity.data.errmsg,
+          icon: 'none',
+          duration: 3000
+        })
+      } else {
+        this.myActivities = resActivity.data.data.activity_list
+      }
+      // this.myClubs = [
+      //   {
+      //     name: 'tars社'
+      //   },
+      //   {
+      //     name: 'tars社'
+      //   },
+      //   {
+      //     name: 'tars社'
+      //   }
+      // ]
+      // this.myActivities = [
+      //   {
+      //     name: 'tars学习',
+      //     start_time: '2019_08_26 19:36:00',
+      //     stop_time: '2019_08_31 24:00:00'
+      //   }
+      // ]
+      this.myActivities.forEach(item => {
+        item.start_time = item.start_time.substr(0, 16)
+        item.start_time = item.start_time.replace(/-/g, '.')
+        item.stop_time = item.stop_time.substr(0, 16)
+        item.stop_time = item.stop_time.replace(/-/g, '.')
+      })
+    }
+    // 点击社团
+    async chooseClub(event) {
+      const currentId = event.currentTarget.id
+      console.log('club_id:' + this.clubs[currentId].club_id)
+      wepy.setStorageSync(this.clubs[currentId].club_id, this.clubs[currentId])
+      wepy.navigateTo({url: './club_info?club_id=' + this.clubs[currentId].club_id})
+    }
+
+    // 点击活动
+    async chooseActivity(event) {
+      const currentId = event.currentTarget.id
+      wepy.setStorageSync(this.activities[currentId].activity_id, this.activities[currentId])
+      wepy.navigateTo({url: './activity_info?activity_id=' + this.activities[currentId].activity_id})
+    }
+
+    // 获取用户信息
+    async getUser() {
+      this.userInfo = wepy.getStorageSync('userInfo')
+      let uid = wepy.getStorageSync('wx_id')
+      const isClubManager = await api.request({
+        url: api.uri.isClubManager,
+        method: 'POST',
+        data: {
+          wx_id: uid,
+          club_id: ''
+        }
+      })
+      // 判断是否为管理员
+      this.setData({
+        judge_manager: isClubManager.data.data.isClubManager
+      })
+    }
+  }
+</script>

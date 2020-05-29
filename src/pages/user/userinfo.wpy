@@ -1,0 +1,218 @@
+<style lang="less">
+  .setting {
+    padding: 40rpx;
+    .setting-box {
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      border-radius: 10rpx;
+      padding: 20rpx 20rpx 40rpx 20rpx;
+      .item {
+        display: flex;
+        flex-direction: row;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        text {
+          width: 200rpx;
+          height: 80rpx;
+          line-height: 80rpx;
+        }
+        input {
+          padding: 10rpx 20rpx;
+          height: 80rpx;
+          line-height: 80rpx;
+          border: 1px solid #F6F6F6;
+          border-radius: 10rpx;
+          color: #666;
+        }
+      }
+      .item.header {
+        text {
+          font-weight: 400;
+          height: 80rpx;
+          line-height: 80rpx;
+        }
+      }
+      .btn {
+        margin-top: 20rpx;
+        margin-left: 20rpx;
+        width: 120rpx;
+        text-align: center;
+        border-radius: 10rpx;
+        color: #ffffff;
+        padding: 10rpx 20rpx;
+        background-color: #1749DC;
+      }
+    }
+  }
+</style>
+
+<template>
+  <view class="container">
+    <view class="setting">
+      <view class="setting-box">
+        <view class="item header">
+          <text>详细信息</text>
+        </view>
+        <view class="item" wx:if="{{!haveInfo}}">
+          <text>姓名</text>
+          <input class="input" bindblur="bindName" type="text" placeholder="请输入姓名" />
+        </view>
+        <view class="item" wx:if="{{haveInfo}}">
+          <text>姓名</text>
+          <text>{{name}}</text>
+        </view>
+        <view class="item">
+          <text>性别</text>
+          <text>{{gender}}</text>
+        </view>
+        <view class="item" wx:if="{{!haveInfo}}">
+          <text>电话</text>
+          <input class="input" bindblur="bindPhone" type="number" placeholder="请输入电话" />
+        </view>
+        <view class="item" wx:if="{{haveInfo}}">
+          <text>电话</text>
+          <text>{{phone}}</text>
+        </view>
+      <!-- <view class="item" wx:if="{{!haveInfo}}">
+          <text>学号</text>
+          <input class="input" bindblur="bindId" type="number" placeholder="请输入学号" />
+        </view>
+        <view class="item" wx:if="{{haveInfo}}">
+          <text>学号</text>
+          <text>{{id}}</text>
+        </view>
+        <view class="item" wx:if="{{!haveInfo}}">
+          <text>专业</text>
+          <input class="input" bindblur="bindMajor" type="text" placeholder="请输入专业" />
+        </view>
+        <view class="item" wx:if="{{haveInfo}}">
+          <text>专业</text>
+          <text>{{major}}</text>
+        </view> -->
+        <text class="btn" @tap="save" wx:if="{{!haveInfo}}">保存</text>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  // import api from '../../api/request'
+  // import token from '../../util/token'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '个人信息'
+    }
+    components = {
+    }
+    data = {
+      setting: {},
+      isLogin: true,
+      haveInfo: false
+    }
+    methods = {
+      bindName(event) {
+        this.setting.name = event.detail.value
+        console.log(this.setting.name)
+      },
+      bindPhone(event) {
+        this.setting.phone = event.detail.value
+      },
+      bindId(event) {
+        this.setting.id = event.detail.value
+      },
+      bindMajor(event) {
+        this.setting.major = event.detail.value
+      },
+      async save() {
+        wepy.showModal({
+          title: '温馨提示',
+          content: '个人信息一经提交则无法修改',
+          confirmText: '确认提交',
+          confirmColor: '#1749DC'
+        }).then(res => {
+          if (res.confirm) {
+            console.log('用户点击确定')
+            this.setInfo()
+          } else if (res.cancel) {
+            console.log('用户点击取消')
+          }
+        })
+        console.log(this.setting)
+      }
+    }
+    async setInfo() {
+      if (!(this.setting.name && this.setting.phone && this.setting.id && this.setting.major)) {
+        wepy.showModal({
+          title: '警告!',
+          content: '个人信息不完整',
+          confirmText: '确定',
+          confirmColor: '#1749DC',
+          showCancel: false
+        }).then(res => {
+        })
+      } else {
+        // const res = await api.request({
+        //   url: api.uri.setInfo,
+        //   method: 'POST',
+        //   data: {
+        //     name: this.setting.name,
+        //     phone: this.setting.phone,
+        //     id: this.setting.id,
+        //     major: this.setting.major
+        //   }
+        // })
+        // if (res.code !== 1) {
+        //   wepy.showToast({
+        //     title: res.msg,
+        //     icon: 'none',
+        //     duration: 2000
+        //   })
+        //   return
+        // }
+        // // 调回上一页
+        // wepy.navigateBack({
+        //   delta: 1
+        // })
+        this.onLoad()
+      }
+    }
+    async onShow() {
+      // await this.getSetting()
+    }
+    async onLoad() {
+      await this.getInfo()
+    }
+    async getInfo() {
+      let info = wepy.getStorageSync('userInfo')
+      // 性别随微信账号
+      if (info.gender === 'male') {
+        this.setData({
+          gender: '男'
+        })
+      } else {
+        this.setData({
+          gender: '女'
+        })
+      }
+      // 其他信息在第一次登陆的时候需要自行录入，之后不允许修改；用name属性判断是否第一次
+      if (info.name !== null) {
+        this.haveInfo = true
+        console.log(info.name)
+        this.setData({
+          name: info.name
+        })
+        this.setData({
+          phone: info.phone
+        })
+        this.setData({
+          id: info.id
+        })
+        this.setData({
+          major: info.major
+        })
+      }
+    }
+  }
+</script>

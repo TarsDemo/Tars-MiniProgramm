@@ -1,0 +1,481 @@
+<style lang="less">
+  @import url("../../less/config");
+  .setDate {
+    height: 150rpx;
+    color: #11111;
+    background: @white;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    .date-btn {
+        display: inline-block;
+        height: 60rpx;
+        border: 2rpx solid #1749DC;
+        border-radius: 10rpx;
+        color: #1749DC;
+        font-size: 28rpx;
+        line-height: 60rpx;
+        text-align: center;
+        padding-left: 20rpx;
+        padding-right: 20rpx;
+      }
+  }
+  .showConfession {
+    color: #11111;
+    margin: 26rpx 26rpx 0 26rpx;
+    background: @white;
+    border-radius: 4rpx;
+    box-shadow: 4rpx 4rpx 20rpx #ddd;
+    padding: 20rpx;
+    display: flex;
+    align-content: space-between;
+    flex-wrap: wrap;
+    >view {
+      width: 100%;
+    }
+    .info {
+      margin-top: 10rpx;
+      margin-bottom: 10rpx;
+      justify-content: space-between;
+      align-items: center;
+      display: flex;
+      color: #666;
+      font-size: 1.1rem;
+    }
+    .love {
+      color: @base-color;
+    }
+    .content {
+      margin-bottom: 10rpx;
+    }
+    .sender {
+      margin-right: 0rpx;
+      font-size: 0.9rem;
+      justify-content: space-between;
+      align-items: center;
+      display: flex;
+      flex-direction: row-reverse;
+      .from {
+        border-bottom: 1px solid #f06292;
+      }
+    }
+  }
+  .add_button{
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    bottom: 60px;
+    right: 10px;
+  }
+  .reload_button{
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    bottom: 10px;
+    right: 10px;
+  }
+  .user {
+    width: 100%;
+    height: 100%;
+    padding: 40rpx;
+    .user-box {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background-color: #ffffff;
+      border-radius: 10rpx;
+      .user-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40rpx;
+        border-bottom: 1px solid #F6F6F6;
+        .avatar {
+          width: 120rpx;
+          height: 120rpx;
+          border-radius: 60rpx;
+        }
+        .txt {
+          font-size: 32rpx;
+          padding: 10rpx 20rpx;
+        }
+        .login {
+          margin-top: 20rpx;
+          color: #1749DC;
+        }
+      }
+      .section {
+        height: 100rpx;
+        font-size: 30rpx;
+        line-height: 100rpx;
+        padding-left: 20rpx;
+        box-sizing: border-box;
+        border-bottom: 1px solid #F6F6F6;
+        .s-label {
+          float: left;
+        }
+        .s-open {
+          float: right;
+          width: 60rpx;
+          padding-left: 20rpx;
+          .s-icon {
+            display: inline-block;
+            box-sizing: border-box;
+            border-right: 3rpx solid #666;
+            border-bottom: 3rpx solid #666;
+            width: 22rpx;
+            height: 22rpx;
+            transform: rotate(-45deg);
+          }
+        }
+      }
+    }
+  }
+</style>
+
+<template>
+  <van-popup class="date-popup" show="{{show_date}}" position="bottom" duration="1000">
+    <view>
+      <van-datetime-picker
+        type="date"
+        value="{{currentDate}}"
+        max-date="{{maxDate}}"
+        bind:confirm="onConfirmDate"
+      />
+    </view>
+  </van-popup>
+  <van-tabs active="{{active}}">
+    <van-tab title="今日表白">
+      <view>
+        <scroll-view scroll-y style="height: {{height}}px" bindscrolltolower="loadConfessions">
+          <block wx:for="{{confessions}}" wx:key="{{index}}">
+            <view class="showConfession">
+              <view class="info">
+                <view class="love">To: {{item.receiver}} ❤</view>
+              </view>
+              <view class="content">{{item.content}}</view>
+              <view class="sender" wx:if="{{!item.anonymous}}">
+                <view class="from">From: {{item.user_name}}</view>
+              </view>
+              <view class="sender" wx:if="{{item.anonymous}}">
+                <view class="from">From: 匿名用户</view>
+              </view>
+            </view>
+          </block>
+        </scroll-view>
+      </view>
+    </van-tab>
+    <van-tab title="往期表白">
+      <view class="setDate">
+        <text class="date-info">当前日期：{{date}}</text>
+        <view class="date-btn" @tap="showPopup">修改日期</view>
+      </view>
+      <view>
+        <scroll-view scroll-y style="height: {{height}}px" bindscrolltolower="loadOldConfessions">
+          <block wx:for="{{confessions_old}}" wx:key="{{index}}">
+            <view class="showConfession">
+              <view class="info">
+                <view class="love">To: {{item.receiver}} ❤</view>
+              </view>
+              <view class="content">{{item.content}}</view>
+              <view class="sender">
+                <view class="from">From: {{item.user_name}}</view>
+              </view>
+            </view>
+          </block>
+        </scroll-view>
+      </view>
+    </van-tab>
+    <van-tab title="我的">
+      <view class="container">
+        <view class="user">
+          <view class="user-box">
+            <view class="user-header">
+              <image class="avatar" src="{{userInfo.avatar_url ? userInfo.avatar_url : '../../assets/image-1.jpg'}}" />
+              <view class="login">
+                <text class="txt">{{userInfo.name}}</text>
+              </view>
+            </view>
+            <view>
+              <van-collapse value="{{ activeNames }}" bind:change="onChangeCollapse">
+                  <van-collapse-item title="我的表白" name="1">
+                    <scroll-view scroll-y style="height: 300px" bindscrolltolower="loadMyConfessions">
+                      <block wx:for="{{confessions_my}}" wx:key="{{index}}">
+                        <view class="showConfession">
+                          <view class="info">
+                            <view class="love">To: {{item.receiver}}</view>
+                          </view>
+                          <view class="content">{{item.content}}</view>
+                        </view>
+                      </block>
+                    </scroll-view>
+                  </van-collapse-item>
+              </van-collapse>
+            </view>
+          </view>
+        </view>
+      </view>
+    </van-tab>
+  </van-tabs>
+  <view>
+    <image class="add_button" src="../../assets/icons/add_button.png" @tap="sendConfession"></image>
+  </view>
+  <view>
+    <image class="reload_button" src="../../assets/icons/reload_button.png" @tap="reload"></image>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '../../api/request'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '表白墙',
+      'usingComponents': {
+        'van-tab': '../../components/vant/tab/index',
+        'van-tabs': '../../components/vant/tabs/index',
+        'van-collapse': '../../components/vant/collapse/index',
+        'van-collapse-item': '../../components/vant/collapse-item/index',
+        'van-datetime-picker': '../../components/vant/datetime-picker/index',
+        'van-popup': '../../components/vant/popup/index'
+      }
+    }
+    components = {}
+    data = {
+      userInfo: {},
+      isLogin: false,
+      active: 0,
+      confessions: [],
+      confessions_old: [],
+      confessions_my: [],
+      index: 0,
+      activeNames: [],
+      height: 0,
+      index_confessions: 0,
+      index_confessions_old: 0,
+      index_confessions_my: 0,
+      date: this.formatTime(new Date().getTime()),
+      currentDate: new Date().getTime(),
+      maxDate: new Date().getTime(),
+      show_date: false
+    }
+
+    methods = {
+      // 修改日期按钮
+      showPopup() {
+        this.show_date = true
+        this.$apply()
+      },
+      // 确认日期弹窗
+      onConfirmDate(event) {
+        this.date = this.formatTime(event.detail)
+        this.show_date = false
+        this.getOldConfessions()
+      },
+      // 今日表白触底刷新
+      loadConfessions() {
+        // this.confessions = this.confessions.concat(this.confessions)
+        this.getConfessions()
+        this.$apply()
+      },
+      // 往日表白触底刷新
+      loadOldConfessions() {
+        // this.confessions_old = this.confessions_old.concat(this.confessions_old)
+        this.getOldConfessions()
+        this.$apply()
+      },
+      // 我的表白触底刷新
+      loadMyConfessions() {
+        // this.confessions_my = this.confessions_my.concat(this.confessions_my)
+        this.myConfessions()
+        this.$apply()
+      },
+      // 点击+按钮
+      async sendConfession() {
+        wepy.navigateTo({url: './sendConfession'})
+      },
+      // 点击刷新按钮
+      async reload() {
+        this.confessions = []
+        this.confessions_old = []
+        this.confessions_my = []
+        this.index_confessions = 0
+        this.index_confessions_old = 0
+        this.index_confessions_my = 0
+        this.getConfessions()
+        this.getOldConfessions()
+        this.myConfessions()
+        wx.showToast({
+          title: '已刷新',
+          icon: 'success',
+          duration: 2000
+        })
+      },
+      onChangeCollapse(event) {
+        this.activeNames = event.detail
+      }
+    }
+
+    onShow() {}
+
+    async onLoad() {
+      this.getUser()
+      this.getConfessions()
+      this.getOldConfessions()
+      this.myConfessions()
+      const that = this
+      if (that.height === 0) {
+        wx.getSystemInfo({
+          success (res) {
+            that.height = res.windowHeight
+          }
+        })
+      }
+    }
+    // 时间格式化
+    formatTime(raw) {
+      var date = new Date(raw)
+      const year = date.getFullYear()
+      var month = date.getMonth() + 1
+      var day = date.getDate()
+      if (month < 10) {
+        month = '0' + month
+      }
+      if (day < 10) {
+        day = '0' + day
+      }
+      console.log(year + '-' + month + '-' + day)
+      return year + '-' + month + '-' + day
+    }
+    // 获取当日的表白信息
+    async getConfessions() {
+      const res = await api.request({
+        url: api.uri.getConfessions,
+        method: 'POST',
+        data: {
+          index: this.index_confessions,
+          date: '',
+          wx_id: ''
+        }
+      })
+      if (res.data.status === 400) {
+        console.log(res.data.errmsg)
+        wx.showToast({
+          title: '服务器错误' + res.data.errmsg,
+          icon: 'none',
+          duration: 3000
+        })
+      } else if (this.index_confessions !== -1) {
+        this.index_confessions = res.data.data.next_index
+        this.confessions = this.confessions.concat(res.data.data.message_list)
+      } else {
+        wx.showToast({
+          title: '没有更多了',
+          icon: 'success',
+          duration: 2000
+        })
+      }
+      this.$apply()
+      // this.confessions = [
+      //   {
+      //     sender: 'tars小助手1',
+      //     receiver: 'Tars星球',
+      //     content: 'Tars 是腾讯从2008年到今天一直在使用的微服务开发框架，2018年成为Linux基金会开源项目，目前支持C++、Java、PHP、Nodejs与Go语言。该框架为用户提供了涉及到开发、运维，以及测试的一整套解决方案，帮助一个产品或者服务快速开发、部署、测试、上线。它集可扩展协议编解码、高性能RPC通信框架、名字路由与发现、发布监控、日志统计、配置管理等于一体，通过它可以快速用微服务的方式构建自己的稳定可靠的分布式应用，并实现完整有效的服务治理'
+      //   },
+      //   {
+      //     sender: 'tars小助手2',
+      //     receiver: 'Tars星球',
+      //     content: 'Tars 是腾讯从2008年到今天一直在使用的微服务开发框架，2018年成为Linux基金会开源项目，目前支持C++、Java、PHP、Nodejs与Go语言。该框架为用户提供了涉及到开发、运维，以及测试的一整套解决方案，帮助一个产品或者服务快速开发、部署、测试、上线。它集可扩展协议编解码、高性能RPC通信框架、名字路由与发现、发布监控、日志统计、配置管理等于一体，通过它可以快速用微服务的方式构建自己的稳定可靠的分布式应用，并实现完整有效的服务治理'
+      //   },
+      //   {
+      //     sender: 'tars小助手3',
+      //     receiver: 'Tars星球',
+      //     content: 'Tars 是腾讯从2008年到今天一直在使用的微服务开发框架，2018年成为Linux基金会开源项目，目前支持C++、Java、PHP、Nodejs与Go语言。该框架为用户提供了涉及到开发、运维，以及测试的一整套解决方案，帮助一个产品或者服务快速开发、部署、测试、上线。它集可扩展协议编解码、高性能RPC通信框架、名字路由与发现、发布监控、日志统计、配置管理等于一体，通过它可以快速用微服务的方式构建自己的稳定可靠的分布式应用，并实现完整有效的服务治理'
+      //   },
+      //   {
+      //     sender: 'tars小助手4',
+      //     receiver: 'Tars星球',
+      //     content: 'Tars 是腾讯从2008年到今天一直在使用的微服务开发框架，2018年成为Linux基金会开源项目，目前支持C++、Java、PHP、Nodejs与Go语言。该框架为用户提供了涉及到开发、运维，以及测试的一整套解决方案，帮助一个产品或者服务快速开发、部署、测试、上线。它集可扩展协议编解码、高性能RPC通信框架、名字路由与发现、发布监控、日志统计、配置管理等于一体，通过它可以快速用微服务的方式构建自己的稳定可靠的分布式应用，并实现完整有效的服务治理'
+      //   }
+      // ]
+    }
+
+    // 获取之前的表白信息
+    async getOldConfessions() {
+      const res = await api.request({
+        url: api.uri.getConfessions,
+        method: 'POST',
+        data: {
+          index: this.index_confessions_old,
+          date: this.date,
+          wx_id: ''
+        }
+      })
+      if (this.index_confessions_old !== -1) {
+        // 下面这个if是在初始化时旧的表白为空但是又不想有Toast提示
+        if (res.data.data.message_list.length !== 0) {
+          this.index_confessions_old = res.data.data.next_index
+          this.confessions_old = this.confessions_old.concat(res.data.data.message_list)
+          this.$apply()
+        }
+      } else {
+        wx.showToast({
+          title: '没有更多了',
+          icon: 'success',
+          duration: 2000
+        })
+      }
+      // this.confessions_old = [
+      //   {
+      //     sender: 'tars小助手',
+      //     receiver: 'tars小助手',
+      //     content: 'love you'
+      //   },
+      //   {
+      //     sender: 'tars小助手',
+      //     receiver: 'Tars星球',
+      //     content: 'Tars 是腾讯从2008年到今天一直在使用的微服务开发框架，2018年成为Linux基金会开源项目，目前支持C++、Java、PHP、Nodejs与Go语言。该框架为用户提供了涉及到开发、运维，以及测试的一整套解决方案，帮助一个产品或者服务快速开发、部署、测试、上线。它集可扩展协议编解码、高性能RPC通信框架、名字路由与发现、发布监控、日志统计、配置管理等于一体，通过它可以快速用微服务的方式构建自己的稳定可靠的分布式应用，并实现完整有效的服务治理'
+      //   }
+      // ]
+    }
+
+    // 获取我的表白信息
+    async myConfessions() {
+      const res = await api.request({
+        url: api.uri.getConfessions,
+        method: 'POST',
+        data: {
+          index: this.index_confessions_my,
+          date: '',
+          wx_id: wepy.getStorageSync('wx_id')
+        }
+      })
+      if (this.index_confessions_my !== -1) {
+        // 下面这个if是在初始化时旧的表白为空但是又不想有Toast提示
+        if (res.data.data.message_list.length !== 0) {
+          this.index_confessions_my = res.data.data.next_index
+          this.confessions_my = this.confessions_my.concat(res.data.data.message_list)
+        }
+      } else {
+        wx.showToast({
+          title: '没有更多了',
+          icon: 'success',
+          duration: 2000
+        })
+      }
+      // this.confessions_my = [
+      //   {
+      //     sender: 'tars小助手',
+      //     receiver: 'tars小助手',
+      //     content: 'love you'
+      //   }
+      // ]
+    }
+
+    // 获取用户信息
+    async getUser() {
+      this.userInfo = await wepy.getStorageSync('userInfo')
+    }
+  }
+</script>

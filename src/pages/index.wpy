@@ -1,0 +1,422 @@
+<style lang="less">
+  .swiper {
+    width: 100%;
+    height: 90%;
+    .swiper-item {
+      padding: 40rpx;
+      box-sizing: border-box;
+      .list {
+        position: relative;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        flex-direction: column;
+        background-color: #ffffff;
+        border-radius: 10rpx;
+        box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.08);
+        .image {
+          width: 100%;
+          height: 45%;
+          border-top-right-radius: 10rpx;
+          border-top-left-radius: 10rpx;
+        }
+        .title {
+          font-weight: 400;
+          font-size: 50rpx;
+          margin-top: 40rpx;
+          color: #f06292;
+        }
+        .intro {
+          font-size: 30rpx;
+          padding: 30rpx;
+          text-align: justify;
+        }
+        .entrance {
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          height: 160rpx;
+          border-top: 1px solid #F6F6F6;
+          navigator {
+            display: inline-block;
+            height: 60rpx;
+            border: 2rpx solid #1749DC;
+            border-radius: 10rpx;
+            color: #1749DC;
+            font-size: 28rpx;
+            line-height: 60rpx;
+            text-align: center;
+            padding-left: 20rpx;
+            padding-right: 20rpx;
+            margin-top: 50rpx;
+          }
+        }
+      }
+    }
+  }
+  .pagination {
+    height: 10%;
+    display: flex;
+    align-items: center;
+    .pagination-bar {
+      display: inline-block;
+      margin: -40rpx auto 0;
+      .item {
+        float: left;
+        width: 15rpx;
+        height: 15rpx;
+        box-sizing: border-box;
+        margin-right: 5rpx;
+        border: 1rpx solid #1749DC;
+        border-radius: 20rpx;
+      }
+      .item:last-child {
+        margin-right: 0;
+      }
+      .item.on {
+        border: none !important;
+        background: #1749DC !important;
+      }
+    }
+  }
+  .loginPopup {
+    .login {
+      height: 35vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      .login-btn {
+        background-color: #1749DC;
+        color: #ffffff;
+        border-radius: 10rpx;
+        margin-bottom: 0vh;
+        width: 30vh;
+      }
+      .login-btn::after {
+        border: none !important;
+      }
+      .check_image {
+        height: 100rpx;
+        width: 100rpx;
+        color: #1749DC;
+      }
+    }
+  }
+  .loginPopup_info {
+    .info {
+      height: 35vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      .info-btn-view {
+        margin-top: 15rpx;
+        .info-btn {
+          background-color: #1749DC;
+          color: #ffffff;
+          border-radius: 10rpx;
+          width: 30vh;
+        }
+        .info-btn::after {
+          border: none !important;
+        }
+      }
+      .item {
+        display: flex;
+        flex-direction: row;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        text {
+          width: 200rpx;
+          height: 80rpx;
+          line-height: 80rpx;
+        }
+        input {
+          padding: 10rpx 20rpx;
+          height: 80rpx;
+          line-height: 80rpx;
+          border: 1px solid #F6F6F6;
+          border-radius: 10rpx;
+          color: #666;
+        }
+      }
+    }
+  }
+</style>
+
+<template>
+  <van-popup class="loginPopup" show="{{show_login}}" position="bottom" duration="1000">
+    <view class="login" id="login">
+      <button type="primary" class="login-btn" open-type="getUserInfo" bindgetuserinfo="wxLogin">授权登录</button>
+    </view>
+  </van-popup>
+  <van-popup class="loginPopup_info" show="{{show_info}}" position="bottom" duration="1000">
+    <view class="info">
+      <view class="item">
+          <text>姓名</text>
+          <input class="input" bindblur="bindName" type="text" placeholder="请输入真实姓名" />
+        </view>
+        <view class="item">
+          <text>电话</text>
+          <input class="input" bindblur="bindPhone" type="number" placeholder="请输入常用电话" />
+        </view>
+        <view class="info-btn-view">
+          <button type="primary" class="info-btn" bindtap="submit">提交个人信息</button>
+        </view>
+    </view>
+  </van-popup>
+  <van-popup class="loginPopup" show="{{show_check}}" position="bottom" duration="1000" bind:click-overlay="popClose">
+    <view class="login" id="login">
+      <image class="check_image" src="../assets/icons/tick-selected.png" />
+      <text>成功登陆!</text>
+    </view>
+  </van-popup>
+  <view class="container">
+    <swiper class="swiper" bindchange="pageChange" current='{{currentPageIndex}}'>
+      <repeat for="{{series}}" key="i" index="idx" item="list">
+        <swiper-item class="swiper-item">
+          <view class="list">
+            <image class="image" src="../assets/{{list.image}}" />
+            <text class="title">{{list.name}}</text>
+            <text class="intro">{{list.intro}}</text>
+            <view class="entrance">
+              <navigator hover-class="none" url="/pages/{{list.url}}" open-type="navigate">
+                <text>查看详情</text>
+              </navigator>
+            </view>
+          </view>
+        </swiper-item>
+      </repeat>
+    </swiper>
+    <view class="pagination">
+      <view class="pagination-bar clear">
+        <repeat for="{{series}}" key="i" index="idx" item="serie">
+          <text class="item {{currentPageIndex == idx ? 'on' :''}}"></text>
+        </repeat>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '../api/request'
+  import authorize from '../api/authorize'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '首页',
+      'usingComponents': {
+        'van-popup': '../components/vant/popup/index'
+      }
+    }
+    components = {}
+    data = {
+      currentPageIndex: 0,
+      series: [
+        {
+          image: 'image-1.jpg',
+          intro: 'love wall',
+          name: '表白墙',
+          url: 'lovewall/confession'
+        },
+        {
+          image: 'image-1.jpg',
+          intro: 'club activity',
+          name: '社团活动',
+          url: 'club/club_index'
+        }
+      ],
+      wx_id: null,
+      userInfo: {},
+
+      // 每个用户填写自己的appid,appid在微信公众平台申请；这里使用flicker申请的appid
+      appid: 'wx2f3efb98397488ae',
+      // 每个开发者填写自己的secret，secrect在微信公众平台获取;这里使用flicker申请的appid
+      secret: '386f75a1271dfdbddd18d41d2336f007'
+    }
+    methods = {
+      pageChange: (event) => {
+        if (event.detail.source === 'touch') {
+          this.currentPageIndex = event.detail.current
+          this.$apply()
+        }
+      },
+
+      // 授权按钮
+      wxLogin: async(event) => {
+        if (!await authorize()) {
+          wepy.showModal({
+            title: '温馨提示',
+            content: '您已拒绝授权登录，部分用户相关的功能将无法使用',
+            confirmText: '继续登录',
+            confirmColor: '#1749DC',
+            showCancel: false
+          }).then(res => {
+            // todo
+          })
+          return
+        }
+        this.setData({
+          show_login: false
+        })
+        this.setData({
+          show_info: true
+        })
+        // 获取微信用户信息
+        this.userInfo = (await wepy.getUserInfo()).userInfo
+        console.log('this is wxLogin()')
+      },
+
+      // 提交个人信息按钮
+      async submit() {
+        console.log('this submit()')
+        const that = this
+        wepy.showModal({
+          title: '警告',
+          content: '个人信息一经提交后不能修改',
+          confirmText: '确定提交',
+          confirmColor: '#1749DC'
+        }).then(res => {
+          if (res.confirm) {
+            // 上传用户信息
+            var gender = ''
+            if (that.userInfo.gender === 1) {
+              gender = 'male'
+            } else {
+              gender = 'female'
+            }
+            api.request({
+              url: api.uri.wxLogin,
+              method: 'POST',
+              data: {
+                wx_id: that.wx_id,
+                avatar_url: that.userInfo.avatarUrl,
+                gender: gender,
+                name: that.userInfo.name,
+                phone: that.userInfo.phone
+              }
+            })
+            that.setData({
+              show_info: false
+            })
+            that.setData({
+              show_check: true
+            })
+            that.$apply()
+          }
+        })
+      },
+
+      // 绑定姓名输入框
+      bindName(event) {
+        this.userInfo.name = event.detail.value
+      },
+      // 绑定电话输入框
+      bindPhone(event) {
+        this.userInfo.phone = event.detail.value
+      },
+
+      // 授权结束后点击蒙层刷新页面
+      popClose() {
+        this.setData({
+          show_check: false
+        })
+        this.requestUserInfo()
+        this.$apply()
+      }
+    }
+
+    async onShow() {
+      const that = this
+      // 判断是否在profile页授权登陆
+      if (wepy.getStorageSync('hasLogin') === 'true') {
+        that.userInfo = wepy.getStorageSync('userInfo')
+        that.setData({
+          show_login: false
+        })
+        that.$apply()
+      } else {
+        that.requestUserInfo()
+      }
+    }
+
+    async onLoad() {
+      this.getOpenId()
+      // this.wx_id = wepy.getStorageSync('wx_id')
+    }
+
+    // 访问服务器获取wx_id
+    async getOpenId () {
+      const that = this
+      wx.login({
+        success: async function (res) {
+          const ret = await api.request({
+            url: api.uri.getOpenId,
+            method: 'GET',
+            data: {
+              appid: that.appid,
+              secret: that.secret,
+              js_code: res.code,
+              grant_type: 'authorization_code'
+            }
+          })
+          wepy.setStorageSync('wx_id', ret.data.openid)
+          that.wx_id = ret.data.openid
+          that.requestUserInfo()
+        }
+      })
+      // const ret = {
+      //   openid: 'qw1124353'
+      // }
+      // wepy.setStorageSync('wx_id', ret.openid)
+      // that.wx_id = ret.openid
+    }
+    // 拉个人信息库
+    async requestUserInfo() {
+      const that = this
+      var ret = await api.request({
+        url: api.uri.getInfo,
+        method: 'GET',
+        data: {
+          wx_id: this.wx_id
+        }
+      })
+      // 判断是否注册
+      if (!ret) {
+        return
+      } else if (ret.data.status === 400) {
+        // 没有注册则弹出注册框
+        that.setData({
+          show_login: true
+        })
+        that.$apply()
+        return
+      }
+      // 已经注册过了直接拉取信息
+      this.setData({
+        show_login: false
+      })
+      this.userInfo.name = ret.data.data.name
+      this.userInfo.phone = ret.data.data.phone
+      this.userInfo.avatar_url = ret.data.data.avatar_url
+      this.userInfo.gender = ret.data.data.gender
+      this.userInfo.group_id = ret.data.data.group
+      wepy.setStorageSync('hasLogin', 'true')
+      that.$apply()
+      // const ret = {
+      //   name: 'tars小助手',
+      //   phone: '1234567890',
+      //   wx_id: 'im id',
+      //   avatar_url: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKibrDko7b58G6v7pflsF2yljCbsoBIFicqxtknvj5Fj5pMZ4eHVS6rF7ffqmYel4oQNsTic4JGHQLaA/132',
+      //   gender: 'male',
+      //   group_id: 1
+      // }
+      wepy.setStorageSync('userInfo', this.userInfo)
+    }
+  }
+</script>

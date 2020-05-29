@@ -1,0 +1,181 @@
+<style lang="less">
+  @import url("../../less/config");
+  .showClubMembers {
+    color: #11111;
+    margin: 26rpx 26rpx 0 26rpx;
+    background: @white;
+    border-radius: 4rpx;
+    box-shadow: 4rpx 4rpx 20rpx #ddd;
+    padding: 20rpx;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    .member_info {
+      display: flex;
+      flex-direction: column;
+      align-items: left;
+      justify-content: center; 
+      font-size: 0.9rem;
+      .name {
+        border-bottom: 1px solid #666666
+      }
+    }
+    .avatar {
+      width: 120rpx;
+      height: 120rpx;
+      border-radius: 60rpx;
+    }
+    .delete_member {
+      padding: 0rpx 40rpx;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; 
+      font-size: 0.7rem;
+      color: #315b8a;
+      text-decoration: underline;
+    }
+  }
+</style>
+
+<template>
+  <van-tabs active="{{active}}">
+    <van-tab title="报名管理">
+      <view>
+        <scroll-view scroll-y style="height: {{height}}px" bindscrolltolower="loadParticipants">
+          <block wx:for="{{participants}}" wx:key="{{index}}">
+            <view class="showClubMembers">
+              <image class="avatar" src="{{item.avatar_url}}" />
+              <view class="member_info">
+                <view class="name">报名者姓名: {{item.name}}</view>
+              </view>
+              <view class="delete_member">
+                <text @tap="deleteParticipant({{index}})">删除</text>
+              </view>
+            </view>
+          </block>
+        </scroll-view>
+      </view>
+    </van-tab>
+  </van-tabs>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '../../api/request'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '报名详情',
+      'usingComponents': {
+        'van-tab': '../../components/vant/tab/index',
+        'van-tabs': '../../components/vant/tabs/index',
+        'van-collapse': '../../components/vant/collapse/index',
+        'van-collapse-item': '../../components/vant/collapse-item/index'
+      }
+    }
+    components = {}
+    data = {
+      active: 0,
+      index: 0,
+      activeNames: [],
+      activity_id: '',
+      participants: [],
+      index_participants: 0,
+      height: 0
+    }
+
+    methods = {
+      // 删除参与者
+      async deleteParticipant(index) {
+        const that = this
+        await wepy.showModal({
+          title: '温馨提示',
+          content: '操作不可撤销，请确认后删除',
+          confirmText: '确认删除',
+          confirmColor: '#1749DC'
+        }).then(async (res) => {
+          if (res.confirm) {
+            that.participants.splice(index, 1)
+            that.$apply()
+            const res = await api.request({
+              url: api.uri.deleteParticipant,
+              method: 'POST',
+              data: {
+                wx_id: this.wx_id,
+                activity_id: this.activity_id
+              }
+            })
+            if (res.data.status !== 400) {
+              wepy.showModal({
+                title: '温馨提示',
+                content: '删除成功',
+                confirmText: '完成',
+                confirmColor: '#1749DC',
+                showCancel: false
+              })
+            } else {
+              wepy.showModal({
+                title: '失败',
+                content: res.data.errmsg,
+                confirmText: '确定',
+                confirmColor: '#1749DC',
+                showCancel: false
+              })
+            }
+          }
+        })
+      },
+      // 参与者信息触底刷新
+      loadParticipants() {
+        this.participants = this.participants.concat(this.participants)
+        this.getParticipants()
+        // this.$apply()
+      }
+    }
+
+    onShow() {}
+
+    async onLoad(options) {
+      // 后续刷新页面操作没有options参数
+      if (options) {
+        this.activity_id = options.activity_id
+        this.getParticipants()
+        // 获取页面高度，给scrollview的height参数赋值
+        const that = this
+        wx.getSystemInfo({
+          success (res) {
+            that.height = res.windowHeight
+          }
+        })
+      }
+    }
+    // 获取参加活动的同学的信息
+    async getParticipants() {
+      const res = await api.request({
+        url: api.uri.getParticipants,
+        method: 'GET',
+        data: {
+          activity_id: this.activity_id,
+          index: this.index_participants
+        }
+      })
+      if (this.index_participants !== -1) {
+        this.index_participants = res.data.data.next_index
+        this.participants = this.participants.concat(res.data.data.participate_list)
+      } else {
+        wx.showToast({
+          title: '没有更多了',
+          icon: 'success',
+          duration: 2000
+        })
+      }
+      // this.participants = [346
+      //   {
+      //     wx_id: 'qwercd1234567',
+      //     name: '本地测试',
+      //     avatar_url: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKibrDko7b58G6v7pflsF2yljCbsoBIFicqxtknvj5Fj5pMZ4eHVS6rF7ffqmYel4oQNsTic4JGHQLaA/132'
+      //   }
+      // ]
+    }
+  }
+</script>

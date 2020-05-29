@@ -1,0 +1,231 @@
+<style lang="less">
+  .swiper {
+    width: 100%;
+    height: 90%;
+    .swiper-item {
+      padding: 40rpx;
+      box-sizing: border-box;
+      .list {
+        position: relative;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        flex-direction: column;
+        background-color: #ffffff;
+        border-radius: 10rpx;
+        box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.08);
+        .image {
+          width: 100%;
+          height: 45%;
+          border-top-right-radius: 10rpx;
+          border-top-left-radius: 10rpx;
+        }
+        .title {
+          font-weight: 400;
+          font-size: 36rpx;
+          margin-top: 40rpx;
+        }
+        .intro {
+          font-size: 30rpx;
+          padding: 30rpx;
+          text-align: justify;
+        }
+        .entrance {
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          height: 160rpx;
+          navigator {
+            display: inline-block;
+            height: 60rpx;
+            border: 2rpx solid #1749DC;
+            border-radius: 10rpx;
+            color: #1749DC;
+            font-size: 28rpx;
+            line-height: 60rpx;
+            text-align: center;
+            padding-left: 20rpx;
+            padding-right: 20rpx;
+            margin-top: 50rpx;
+          }
+          .join_btn {
+            display: inline-block;
+            height: 60rpx;
+            border: 2rpx solid #1749DC;
+            border-radius: 10rpx;
+            color: #1749DC;
+            font-size: 28rpx;
+            line-height: 60rpx;
+            text-align: center;
+            padding-left: 20rpx;
+            padding-right: 20rpx;
+            margin-top: 50rpx;
+          }
+        }
+      }
+    }
+    .info-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 10rpx;
+      padding: 20rpx 20rpx 40rpx 20rpx;
+      .item {
+        display: flex;
+        flex-direction: row;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        text {
+          width: 200rpx;
+          height: 80rpx;
+          line-height: 80rpx;
+        }
+      }
+      .item.header {
+        font-weight: 400;
+        font-size: 50rpx;
+        height: 120rpx;
+        line-height: 80rpx;
+        color: #666666;
+      }
+      .rich_text {
+        display: flex;
+        flex-direction: column;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        text {
+          width: 400rpx;
+        }
+      }
+    }
+  }
+</style>
+
+<template>
+  <view class="container">
+    <swiper class="swiper" bindchange="pageChange" current='{{currentPageIndex}}'>
+      <swiper-item class="swiper-item">
+        <view class="list">
+          <view class="info-box">
+            <view class="item header">{{activity.name}}</view>
+            <view class="item">
+              <text>举办社团:</text>
+              <text>{{activity.club_name}}</text>
+            </view>
+            <view class="rich_text">
+              <text>活动时间:</text>
+              <text>{{'开始: ' + activity.start_time}}</text>
+              <text>{{'结束: ' + activity.stop_time}}</text>
+            </view>
+            <view class="rich_text">
+              <text>活动报名时间:</text>
+              <text>{{'开始: ' + activity.registry_start_time}}</text>
+              <text>{{'结束: ' + activity.registry_stop_time}}</text>
+            </view>
+            <view class="rich_text">
+              <text>活动介绍:</text>
+              <text>{{activity.content}}</text>
+            </view>
+          </view>
+          <view class="entrance">
+            <!-- <navigator hover-class="none" url="/pages/{{list.url}}" open-type="navigate">
+              <text>加入社团</text>
+            </navigator> -->
+            <view class="join_btn" @tap='JoinActivity'>
+              <text>报名活动</text>
+            </view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+</template>
+
+
+<script>
+  import wepy from 'wepy'
+  import api from '../../api/request'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '活动详情',
+      'usingComponents': {
+        'van-tab': '../../components/vant/tab/index',
+        'van-tabs': '../../components/vant/tabs/index',
+        'van-collapse': '../../components/vant/collapse/index',
+        'van-collapse-item': '../../components/vant/collapse-item/index'
+      }
+    }
+    components = {}
+    data = {
+      wx_id: null,
+      isLogin: false,
+      activity_id: null,
+      activity: null
+    }
+
+    methods = {
+      async JoinActivity() {
+        wepy.showToast({
+          title: '已发送申请',
+          icon: 'success',
+          duration: 2000
+        })
+        const res = await api.request({
+          url: api.uri.hasAppliedActivity,
+          method: 'POST',
+          data: {
+            activity_id: this.activity_id,
+            wx_id: this.wx_id
+          }
+        })
+        if (res.data.status === 400) {
+          wx.showToast({
+            title: '服务器错误' + res.data.errmsg,
+            icon: 'none',
+            duration: 3000
+          })
+        } else if (res.data.data.isApplied === false) {
+          api.request({
+            url: api.uri.joinActivity,
+            method: 'POST',
+            data: {
+              activity_id: this.activity_id,
+              wx_id: this.wx_id
+            }
+          })
+        } else {
+          wx.showToast({
+            title: '你已经申请过该活动',
+            icon: 'none',
+            duration: 3000
+          })
+        }
+      }
+    }
+
+    onShow() {}
+
+    async onLoad(options) {
+      console.log(options)
+      this.activity_id = options.activity_id
+      this.getUser()
+      this.getActivity()
+    }
+
+    // 获取活动信息信息
+    async getActivity() {
+      this.activity = wepy.getStorageSync(this.activity_id)
+    }
+
+    // 获取用户信息
+    async getUser() {
+      this.wx_id = wepy.getStorageSync('wx_id')
+    }
+  }
+</script>

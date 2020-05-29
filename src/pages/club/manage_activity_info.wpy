@@ -1,0 +1,452 @@
+<style lang="less">
+  .swiper {
+    width: 100%;
+    height: 90%;
+    .swiper-item {
+      padding: 40rpx;
+      box-sizing: border-box;
+      .list {
+        position: relative;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        flex-direction: column;
+        background-color: #ffffff;
+        border-radius: 10rpx;
+        box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.08);
+        .image {
+          width: 100%;
+          height: 45%;
+          border-top-right-radius: 10rpx;
+          border-top-left-radius: 10rpx;
+        }
+        .title {
+          font-weight: 400;
+          font-size: 36rpx;
+          margin-top: 40rpx;
+        }
+        .intro {
+          font-size: 30rpx;
+          padding: 30rpx;
+          text-align: justify;
+        }
+        .entrance {
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          height: 160rpx;
+          navigator {
+            display: inline-block;
+            height: 60rpx;
+            border: 2rpx solid #1749DC;
+            border-radius: 10rpx;
+            color: #1749DC;
+            font-size: 28rpx;
+            line-height: 60rpx;
+            text-align: center;
+            padding-left: 20rpx;
+            padding-right: 20rpx;
+            margin-top: 50rpx;
+          }
+          .join_btn {
+            display: inline-block;
+            height: 60rpx;
+            border: 2rpx solid #1749DC;
+            border-radius: 10rpx;
+            color: #1749DC;
+            font-size: 28rpx;
+            line-height: 60rpx;
+            text-align: center;
+            padding-left: 20rpx;
+            padding-right: 20rpx;
+            margin-top: 50rpx;
+          }
+        }
+      }
+    }
+    .info-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 10rpx;
+      width: 100%;
+      padding: 20rpx 20rpx 40rpx 20rpx;
+      .header {
+        font-weight: 400;
+        font-size: 50rpx;
+        height: 120rpx;
+        line-height: 80rpx;
+        color: #666666;
+        display: flex;
+        flex-direction: row;
+      }
+      .item {
+        display: flex;
+        flex-direction: row;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        width: 90%;
+        justify-content: space-between;
+        text {
+          height: 80rpx;
+          line-height: 80rpx;
+        }
+        .activity_name {
+          height: 80rpx;
+          line-height: 80rpx;
+          padding: 0rpx 15rpx;
+        }
+        .input_activity_name {
+          height: 80rpx;
+          line-height: 80rpx;
+          padding: 0rpx 15rpx;
+          max-width: 300rpx;
+        }
+        .modify {
+          font-size: 0.9rem;
+          color: #315b8a;
+          text-decoration: underline;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          .modify_content {
+            padding: 0rpx 15rpx;
+            font-size: 0.9rem;
+            color: #315b8a;
+            text-decoration: underline;
+          }
+        }
+      }
+      .rich_text {
+        display: flex;
+        flex-direction: column;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        width: 90%;
+        .time {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          .modify {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            .modify_content {
+              padding: 0rpx 15rpx;
+              font-size: 0.9rem;
+              color: #315b8a;
+              text-decoration: underline;
+            }
+          }
+        }
+        .activity_intro {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          text {
+            width: 80%;
+          }
+          textarea {
+            display: inline-block;
+            width: 300rpx;
+          }
+          .modify {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            .modify_content {
+              padding: 0rpx 15rpx;
+              font-size: 0.9rem;
+              color: #315b8a;
+              text-decoration: underline;
+            }
+          }
+          .placeholder_intro {
+            color: #b0b0b0; 
+            font-size: 0.7rem;
+            font-weight: 100;
+          }
+        }
+      }
+      .placeholder_class {
+        color: #666666; 
+        font-size: 0.7rem;
+        text-align: center;
+      }
+    }
+  }
+</style>
+
+<template>
+  <view class="container">
+    <swiper class="swiper" bindchange="pageChange" current="{{currentPageIndex}}">
+      <swiper-item class="swiper-item">
+        <view class="list">
+          <view class="info-box">
+            <view class="header"><text>{{activity.club_name}}</text></view>
+            <view class="item" wx:if="{{!judge_name}}">
+              <text>活动名称:</text>
+              <view class="activity_name">{{activity.name}}</view>
+              <view class="modify">
+                <view class="modify_content" @tap="modify_name">修改</view>
+              </view>
+            </view>
+            <view class="item" wx:if="{{judge_name}}">
+              <text>活动名称:</text>
+              <input class="input_activity_name" placeholder="不得超过10字" placeholder-class="placeholder_class" maxlength="10" bindblur="input_name" focus="true"/>
+              <view class="modify">
+                <view class="modify_content" @tap="input_name_confirm">确认</view>
+              </view>
+            </view>
+            <view class="rich_text">
+              <text>活动时间:</text>
+              <view class="time" wx:if="{{!judge_start_time}}">
+                <text>开始: </text>
+                <text>{{activity.start_time}}</text>
+                <view class="modify">
+                  <view class="modify_content" @tap="modify_start_time">修改</view>
+                </view>
+              </view>
+              <view class="time" wx:if="{{judge_start_time}}">
+                <text>开始: </text>
+                <input class="input_box" placeholder="YYYY-MM-DD hh:mm" placeholder-class="placeholder_class" maxlength="16" bindblur="input_start_time" focus="true"/>
+                <view class="modify">
+                  <view class="modify_content" @tap="input_start_time_confirm">确认</view>
+                </view>
+              </view>
+              <view class="time" wx:if="{{!judge_stop_time}}">
+                <text>结束: </text>
+                <text>{{activity.stop_time}}</text>
+                <view class="modify">
+                  <view class="modify_content" @tap="modify_stop_time">修改</view>
+                </view>
+              </view>
+              <view class="time" wx:if="{{judge_stop_time}}">
+                <text>结束: </text>
+                <input class="input_box" placeholder="YYYY-MM-DD hh:mm" placeholder-class="placeholder_class" maxlength="16" bindblur="input_stop_time" focus="true"/>
+                <view class="modify">
+                  <view class="modify_content" @tap="input_stop_time_confirm">确认</view>
+                </view>
+              </view>
+            </view>
+            <view class="rich_text">
+              <text>活动报名时间:</text>
+              <view class="time" wx:if="{{!judge_registry_start_time}}">
+                <text>开始: </text>
+                <text>{{activity.registry_start_time}}</text>
+                <view class="modify">
+                  <view class="modify_content" @tap="modify_registry_start_time">修改</view>
+                </view>
+              </view>
+              <view class="time" wx:if="{{judge_registry_start_time}}">
+                <text>开始: </text>
+                <input class="input_box" placeholder="YYYY-MM-DD HH:MM" placeholder-class="placeholder_class" maxlength="16" bindblur="input_registry_start_time" focus="true"/>
+                <view class="modify">
+                  <view class="modify_content" @tap="input_registry_start_time_confirm">确认</view>
+                </view>
+              </view>
+              <view class="time" wx:if="{{!judge_registry_stop_time}}">
+                <text>结束: </text>
+                <text>{{activity.registry_stop_time}}</text>
+                <view class="modify">
+                  <view class="modify_content" @tap="modify_registry_stop_time">修改</view>
+                </view>
+              </view>
+              <view class="time" wx:if="{{judge_registry_stop_time}}">
+                <text>结束: </text>
+                <input class="input_box" placeholder="YYYY-MM-DD HH:MM" placeholder-class="placeholder_class" maxlength="16" bindblur="input_registry_stop_time" focus="true"/>
+                <view class="modify">
+                  <view class="modify_content" @tap="input_registry_stop_time_confirm">确认</view>
+                </view>
+              </view>
+            </view>
+            <view class="rich_text">
+              <text>活动介绍:</text>
+              <view class="activity_intro" wx:if="{{!judge_activity_intro}}">
+                <text>{{activity.content}}</text>
+                <view class="modify">
+                  <view class="modify_content" @tap="modify_activity_intro">修改</view>
+                </view>
+              </view>
+              <view class="activity_intro" wx:if="{{judge_activity_intro}}">
+                <textarea placeholder="不得超过50字" placeholder-class="placeholder_intro" maxlength="50" bindblur="input_activity_intro" focus="true" fixed="true" auto-height="true"/>
+                <view class="modify">
+                  <view class="modify_content" @tap="input_activity_intro_confirm">确定</view>
+                </view>
+              </view>  
+            </view>
+          </view>
+          <view class="entrance">
+            <view class="join_btn" @tap='submitModification'>
+              <text>保存修改</text>
+            </view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+</template>
+
+
+<script>
+  import wepy from 'wepy'
+  import api from '../../api/request'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '活动详情',
+      'usingComponents': {
+        'van-tab': '../../components/vant/tab/index',
+        'van-tabs': '../../components/vant/tabs/index',
+        'van-collapse': '../../components/vant/collapse/index',
+        'van-collapse-item': '../../components/vant/collapse-item/index'
+      }
+    }
+    components = {}
+    data = {
+      userInfo: {},
+      isLogin: false,
+      activity_id: null,
+      activity: null,
+      judge_name: false,
+      judge_start_time: false,
+      judge_stop_time: false,
+      judge_registry_start_time: false,
+      judge_registry_stop_time: false,
+      judge_activity_intro: null,
+      temp_name: null,
+      temp_start_time: null,
+      temp_stop_time: null,
+      temp_registry_start_time: null,
+      temp_registry_stop_time: null,
+      temp_activity_intro: null
+    }
+
+    methods = {
+      async submitModification() {
+        const res = await api.request({
+          url: api.uri.submitModification,
+          method: 'POST',
+          data: {
+            name: this.activity.name,
+            activity_id: this.activity.activity_id,
+            start_time: this.activity.start_time + ':00',
+            stop_time: this.activity.stop_time + ':00',
+            registry_start_time: this.activity.registry_start_time + ':00',
+            registry_stop_time: this.activity.registry_stop_time + ':00',
+            target_id: this.activity.target_id,
+            content: this.activity.content
+          }
+        })
+        if (res.data.status !== 400) {
+          wepy.showModal({
+            title: '温馨提示',
+            content: '保存成功',
+            confirmText: '完成',
+            confirmColor: '#1749DC',
+            showCancel: false
+          })
+        } else {
+          wepy.showModal({
+            title: '保存成功',
+            content: res.data.errmsg,
+            confirmText: '确定',
+            confirmColor: '#1749DC',
+            showCancel: false
+          })
+        }
+      },
+      // 下面的函数每三个一组，分别对应每一个修改条目
+      // 修改活动名称
+      modify_name() {
+        this.judge_name = true
+        this.$apply()
+      },
+      input_name(event) {
+        this.temp_name = event.detail.value
+      },
+      input_name_confirm() {
+        this.activity.name = this.temp_name
+        this.judge_name = false
+        this.$apply()
+      },
+      // 修改活动开始时间
+      modify_start_time() {
+        this.judge_start_time = true
+        this.$apply()
+      },
+      input_start_time(event) {
+        this.temp_start_time = event.detail.value
+      },
+      input_start_time_confirm() {
+        this.activity.start_time = this.temp_start_time
+        this.judge_start_time = false
+        this.$apply()
+      },
+      // 修改活动结束时间
+      modify_stop_time() {
+        this.judge_stop_time = true
+        this.$apply()
+      },
+      input_stop_time(event) {
+        this.temp_stop_time = event.detail.value
+      },
+      input_stop_time_confirm() {
+        this.activity.stop_time = this.temp_stop_time
+        this.judge_stop_time = false
+        this.$apply()
+      },
+      // 修改活动报名开始时间
+      modify_registry_start_time() {
+        this.judge_registry_start_time = true
+        this.$apply()
+      },
+      input_registry_start_time(event) {
+        this.temp_registry_start_time = event.detail.value
+      },
+      input_registry_start_time_confirm() {
+        this.activity.registry_start_time = this.temp_registry_start_time
+        this.judge_registry_start_time = false
+        this.$apply()
+      },
+      // 修改活动报名结束时间
+      modify_registry_stop_time() {
+        this.judge_registry_stop_time = true
+        this.$apply()
+      },
+      input_registry_stop_time(event) {
+        this.temp_registry_stop_time = event.detail.value
+      },
+      input_registry_stop_time_confirm() {
+        this.activity.registry_stop_time = this.temp_registry_stop_time
+        this.judge_registry_stop_time = false
+        this.$apply()
+      },
+      // 修改活动介绍
+      modify_activity_intro() {
+        this.judge_activity_intro = true
+        this.$apply()
+      },
+      input_activity_intro(event) {
+        this.temp_activity_intro = event.detail.value
+      },
+      input_activity_intro_confirm() {
+        this.activity.content = this.temp_activity_intro
+        this.judge_activity_intro = false
+        this.$apply()
+      }
+    }
+
+    onShow() {}
+
+    async onLoad() {
+      this.activity = wepy.getStorageSync('manage_activity')
+      this.$apply()
+    }
+  }
+</script>

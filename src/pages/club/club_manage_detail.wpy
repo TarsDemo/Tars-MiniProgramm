@@ -1,0 +1,580 @@
+<style lang="less">
+  @import url("../../less/config");
+  .showClubMembers {
+    color: #11111;
+    margin: 26rpx 26rpx 0 26rpx;
+    background: @white;
+    border-radius: 4rpx;
+    box-shadow: 4rpx 4rpx 20rpx #ddd;
+    padding: 20rpx;
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    flex-wrap: wrap;
+    .member_info {
+      display: flex;
+      flex-direction: column;
+      align-items: left;
+      justify-content: center; 
+      font-size: 0.9rem;
+      .name {
+        border-bottom: 1px solid #666666
+      }
+    }
+    .avatar {
+      width: 120rpx;
+      height: 120rpx;
+      border-radius: 60rpx;
+    }
+    .delete_member {
+      padding: 0rpx 40rpx;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; 
+      font-size: 0.7rem;
+      color: #315b8a;
+      text-decoration: underline;
+    }
+  }
+  .showApplyMembers {
+    color: #11111;
+    margin: 26rpx 26rpx 0 26rpx;
+    background: @white;
+    border-radius: 4rpx;
+    box-shadow: 4rpx 4rpx 20rpx #ddd;
+    padding: 20rpx;
+    display: flex;
+    flex-direction: row;
+    align-content: space-between;
+    flex-wrap: wrap;
+    .apply_info {
+      display: flex;
+      flex-direction: column;
+      align-items: left;
+      justify-content: center; 
+      font-size: 0.9rem;
+      .name {
+        border-bottom: 1px solid #666666
+      }
+    }
+    .avatar {
+      width: 120rpx;
+      height: 120rpx;
+      border-radius: 60rpx;
+    }
+    .consent {
+      padding: 0rpx 40rpx;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; 
+      align-items: center;
+      font-size: 0.7rem;
+      color: #315b8a;
+      text-decoration: underline;
+      text {
+        padding: 10rpx;
+      }
+    }
+  }
+  .showActivities {
+    color: #11111;
+    margin: 26rpx 26rpx 0 26rpx;
+    background: @white;
+    border-radius: 4rpx;
+    box-shadow: 4rpx 4rpx 20rpx #ddd;
+    padding: 20rpx;
+    flex-direction: row;
+    align-content: center;
+    flex-wrap: wrap;
+    .activity_info {
+      display: flex;
+      flex-direction: column;
+      align-items: left;
+      justify-content: center; 
+      .title {
+        color: #f06292;
+        font-size: 1.2rem;
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        text {
+          border-bottom: 1px solid #666666;
+        } 
+      }
+      .activity_content {
+        padding: 10rpx;
+        .header {
+          font-weight: 5;
+        }
+        .content {
+          font-size: 0.9rem
+        }
+      }
+      .manager_box {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        text {
+          padding: 0rpx 20rpx;
+          font-size: 0.9rem;
+          color: #315b8a;
+          text-decoration: underline;
+        }
+      }
+    }
+    .delete_member {
+      padding: 0rpx 40rpx;
+      display: flex;
+      flex-direction: column;
+      justify-content: center; 
+      font-size: 0.7rem;
+      color: #315b8a;
+      text-decoration: underline;
+    }
+  }
+  .add_button{
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    bottom: 60px;
+    right: 10px;
+  }
+  .reload_button{
+    position: fixed;
+    width: 50px;
+    height: 50px;
+    bottom: 10px;
+    right: 10px;
+  }
+</style>
+
+<template>
+  <van-tabs bind:change="changeAddBtn">
+    <van-tab title="会员管理">
+      <view>
+        <scroll-view scroll-y style="height: {{height}}px" bindscrolltolower="loadClubMembers">
+          <block wx:for="{{club_members}}" wx:key="{{index}}">
+            <view class="showClubMembers">
+              <image class="avatar" src="{{item.avatar_url}}" />
+              <view class="member_info">
+                <view class="name">会员姓名: {{item.user_name}}</view>
+                <view class="apply_time">入会时间: {{item.apply_time}}</view>
+              </view>
+              <view class="delete_member">
+                <text @tap="deleteMember({{index}})">删除会员</text>
+              </view>
+            </view>
+          </block>
+        </scroll-view>
+      </view>
+    </van-tab>
+    <van-tab title="活动管理">
+      <view>
+        <scroll-view scroll-y style="height: {{height}}px" bindscrolltolower="loadManageActivities">
+          <block wx:for="{{manage_activities}}" wx:key="{{index}}">
+            <view class="showActivities" id="{{index}}">
+              <view class="activity_info">
+                <view class="title"><text>{{item.name}}</text></view>
+                <view class="activity_content">
+                  <view class="header">举办社团：</view>
+                  <view class="content">{{item.club_name}}</view>
+                  <view class="header">活动时间：</view>
+                  <view class="content">{{item.start_time + ' 至 ' + item.stop_time}}</view>
+                  <view class="header">报名时间：</view>
+                  <view class="content">{{item.registry_start_time + ' 至 ' + item.registry_stop_time}}</view>
+                </view>
+                <view class="manager_box">
+                  <text @tap="participants({{index}})">报名详情</text>
+                  <text @tap="manageActivity({{index}})">修改</text>
+                  <text @tap="deleteActivity({{index}})">删除</text>
+                </view>
+              </view>
+            </view>
+          </block>
+        </scroll-view>
+      </view>
+    </van-tab>
+    <van-tab title="入会管理">
+      <view>
+        <scroll-view scroll-y style="height: {{height}}px" bindscrolltolower="loadApplyMembers">
+          <block wx:for="{{apply_members}}" wx:key="{{index}}">
+            <view class="showApplyMembers">
+              <image class="avatar" src="{{item.avatar_url}}" />
+              <view class="apply_info">
+                <view class="name">申请人姓名: {{item.user_name}}</view>
+                <view class="apply_time">申请时间: {{item.apply_time}}</view>
+              </view>
+              <view class="consent">
+                <text @tap="consentApply({{index}})">同意</text>
+                <text @tap="rejectApply({{index}})">拒绝</text>
+              </view>
+            </view>
+          </block>
+        </scroll-view>
+      </view>
+    </van-tab>
+  </van-tabs>
+  <view>
+    <image class="add_button" wx:if="{{add_btn}}" src="../../assets/icons/add_button.png" @tap="addActivity"></image>
+  </view>
+  <view>
+    <image class="reload_button" src="../../assets/icons/reload_button.png" @tap="reload"></image>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '../../api/request'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '社团管理',
+      'usingComponents': {
+        'van-tab': '../../components/vant/tab/index',
+        'van-tabs': '../../components/vant/tabs/index',
+        'van-collapse': '../../components/vant/collapse/index',
+        'van-collapse-item': '../../components/vant/collapse-item/index'
+      }
+    }
+
+    components = {}
+
+    data = {
+      index: 0,
+      club_id: '',
+      club_members: [],
+      manage_activities: [],
+      apply_members: [],
+      add_btn: false,
+      height: 0,
+      index_clubMembers: 0,
+      index_manageActivities: 0,
+      index_applyMembers: 0
+    }
+
+    methods = {
+      // 会员管理触底刷新
+      loadClubMembers() {
+        // this.club_members = this.club_members.concat(this.club_members)
+        this.getClubMembers()
+        this.$apply()
+      },
+      // 新会员入会触底刷新
+      loadApplyMembers() {
+        // this.apply_members = this.apply_members.concat(this.apply_members)
+        this.getApplyMembers()
+        this.$apply()
+      },
+      // 本社团活动触底刷新
+      loadManageActivities() {
+        this.manage_activities = this.manage_activities.concat(this.manage_activities)
+        // this.getMangaeActivities()
+        this.$apply()
+      },
+      // 刷新页面按钮
+      reload() {
+        this.club_members = []
+        this.manage_activities = []
+        this.apply_members = []
+        this.index_clubMembers = 0
+        this.index_manageActivities = 0
+        this.index_applyMembers = 0
+        this.getClubMembers()
+        this.getApplyMembers()
+        this.getManageActivities()
+        wx.showToast({
+          title: '已刷新',
+          icon: 'success',
+          duration: 2000
+        })
+        this.$apply()
+      },
+      // 删除会员
+      deleteMember(index) {
+        const that = this
+        wepy.showModal({
+          title: '温馨提示',
+          content: '操作不可撤销，请确认后删除',
+          confirmText: '确认删除',
+          confirmColor: '#1749DC'
+        }).then(res => {
+          if (res.confirm) {
+            api.request({
+              url: api.uri.deleteMember,
+              method: 'POST',
+              data: {
+                wx_id: this.club_members[index].wx_id,
+                club_id: this.club_id
+              }
+            })
+            that.club_members.splice(index, 1)
+            that.$apply()
+          }
+        })
+      },
+      // 加入会员
+      consentApply(index) {
+        const that = this
+        wepy.showModal({
+          title: '温馨提示',
+          content: '允许操作不可撤销，请确认',
+          confirmText: '确认允许',
+          confirmColor: '#1749DC'
+        }).then(res => {
+          if (res.confirm) {
+            // 会员管理页会新增条目，这里前端是直接操作
+            that.club_members[that.club_members.length] = {
+              name: that.apply_members[index].name,
+              avatar_url: that.apply_members[index].avatar_url,
+              apply_time: that.apply_members[index].apply_time
+            }
+            api.request({
+              url: api.uri.consentApplication,
+              method: 'POST',
+              data: {
+                club_id: this.club_id,
+                wx_id: this.apply_members[index].wx_id
+              }
+            })
+            that.apply_members.splice(index, 1)
+            that.$apply()
+          }
+        })
+      },
+      // 拒绝加入
+      rejectApply(index) {
+        const that = this
+        wepy.showModal({
+          title: '温馨提示',
+          content: '拒绝操作不可撤销，请确认',
+          confirmText: '确认拒绝',
+          confirmColor: '#1749DC'
+        }).then(res => {
+          if (res.confirm) {
+            api.request({
+              url: api.uri.rejectApplication,
+              method: 'POST',
+              data: {
+                club_id: this.club_id,
+                wx_id: this.apply_members[index].wx_id
+              }
+            })
+            that.apply_members.splice(index, 1)
+            that.$apply()
+          }
+        })
+      },
+      // 报名活动详情，查看已报名的同学
+      participants(index) {
+        const that = this
+        wepy.navigateTo({url: './manage_participants?activity_id=' + that.manage_activities[index].activity_id})
+      },
+      // 编辑活动
+      async manageActivity(index) {
+        const that = this
+        // 将被点击的活动的信息存到缓存
+        wepy.setStorageSync('manage_activity', that.manage_activities[index])
+        wepy.navigateTo({url: './manage_activity_info'})
+      },
+      // 删除活动
+      async deleteActivity(index) {
+        const that = this
+        await wepy.showModal({
+          title: '温馨提示',
+          content: '操作不可撤销，请确认后删除',
+          confirmText: '确认删除',
+          confirmColor: '#1749DC'
+        }).then(res => {
+          if (res.confirm) {
+            that.manage_activities.splice(index, 1)
+            that.$apply()
+            api.request({
+              url: api.uri.deleteActivity,
+              method: 'POST',
+              data: {
+                activity_id: that.manage_activities[index].activity_id
+              }
+            })
+          }
+        })
+      },
+      // 添加活动
+      addActivity() {
+        const that = this
+        wepy.navigateTo({url: './add_activity?club_id=' + that.club_id})
+      },
+      // 活动管理页才显示 +按钮
+      changeAddBtn(event) {
+        if (event.detail.index === 1) {
+          this.add_btn = true
+        } else {
+          this.add_btn = false
+        }
+        this.$apply()
+      }
+    }
+
+    onShow() {
+      // 打开页面时执行一次，活动管理修改子页返回后也会刷新一次
+      // this.getClubMembers()
+      // this.getApplyMembers()
+      // this.getManageActivities()
+      console.log('this is onShow()')
+    }
+
+    async onLoad(options) {
+      // 初始化
+      if (options) {
+        this.club_id = options.club_id
+        const that = this
+        // 获取页面高度，给scrollview的height参数赋值
+        wx.getSystemInfo({
+          success (res) {
+            that.height = res.windowHeight
+          }
+        })
+        this.getClubMembers()
+        this.getApplyMembers()
+        this.getManageActivities()
+      }
+    }
+
+    // 获取管理的社团的成员
+    async getClubMembers() {
+      const res = await api.request({
+        url: api.uri.getClubMembers,
+        method: 'GET',
+        data: {
+          club_id: this.club_id,
+          index: this.index_clubMembers
+        }
+      })
+      if (res.data.status === 400) {
+        wx.showToast({
+          title: '服务器错误' + res.data.errmsg,
+          icon: 'none',
+          duration: 3000
+        })
+      } else if (this.index_clubMembers !== -1) {
+        this.index_clubMembers = res.data.data.next_index
+        this.club_members = this.club_members.concat(res.data.data.member_list)
+        this.$apply()
+      } else {
+        wx.showToast({
+          title: '没有更多了',
+          icon: 'success',
+          duration: 2000
+        })
+      }
+      // this.club_members = [
+      //   {
+      //     wx_id: '本地测试',
+      //     name: '1',
+      //     avatar_url: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKibrDko7b58G6v7pflsF2yljCbsoBIFicqxtknvj5Fj5pMZ4eHVS6rF7ffqmYel4oQNsTic4JGHQLaA/132',
+      //     apply_time: '2019_08_26 19:36:00'
+      //   }
+      // ]
+      this.club_members.forEach(item => {
+        item.apply_time = item.apply_time.substr(0, 16)
+        item.apply_time = item.apply_time.replace(/-/g, '.')
+      })
+    }
+    // 获取管理的社团的申请加入
+    async getApplyMembers() {
+      var res = await api.request({
+        url: api.uri.getApplyMembers,
+        method: 'GET',
+        data: {
+          club_id: this.club_id,
+          index: this.index_applyMembers
+        }
+      })
+      if (this.index_applyMembers !== -1) {
+        this.index_applyMembers = res.data.data.next_index
+        this.apply_members = this.apply_members.concat(res.data.data.application_list)
+      } else {
+        wx.showToast({
+          title: '没有更多了',
+          icon: 'success',
+          duration: 2000
+        })
+      }
+      // this.apply_members = [
+      //   {
+      //     name: '新人小黄1',
+      //     wx_id: 'qwerdf1234567',
+      //     avatar_url: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKibrDko7b58G6v7pflsF2yljCbsoBIFicqxtknvj5Fj5pMZ4eHVS6rF7ffqmYel4oQNsTic4JGHQLaA/132',
+      //     apply_time: '2019-08-26 19:36:00'
+      //   }
+      // ]
+      // this.apply_members = [
+      //   {
+      //     name: '新人小黄1',
+      //     wx_id: 'qwerdf1234567',
+      //     avatar_url: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKibrDko7b58G6v7pflsF2yljCbsoBIFicqxtknvj5Fj5pMZ4eHVS6rF7ffqmYel4oQNsTic4JGHQLaA/132',
+      //     apply_time: '2019-08-26 19:36:00'
+      //   },
+      //   {
+      //     name: '新人小弗2',
+      //     wx_id: 'qwerdf1234567',
+      //     avatar_url: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKibrDko7b58G6v7pflsF2yljCbsoBIFicqxtknvj5Fj5pMZ4eHVS6rF7ffqmYel4oQNsTic4JGHQLaA/132',
+      //     apply_time: '2019-08-26 19:36:00'
+      //   },
+      //   {
+      //     name: '新人小黄3',
+      //     wx_id: 'qwerdf1234567',
+      //     avatar_url: 'https://wx.qlogo.cn/mmopen/vi_32/Q0j4TwGTfTKibrDko7b58G6v7pflsF2yljCbsoBIFicqxtknvj5Fj5pMZ4eHVS6rF7ffqmYel4oQNsTic4JGHQLaA/132',
+      //     apply_time: '2019-08-26 19:36:00'
+      //   }
+      // ]
+      this.apply_members.forEach(item => {
+        item.apply_time = item.apply_time.substr(0, 16)
+        item.apply_time = item.apply_time.replace(/-/g, '.')
+      })
+    }
+    // 获取管理的社团的活动信息
+    async getManageActivities() {
+      var res = await api.request({
+        url: api.uri.getManageActivities,
+        method: 'GET',
+        data: {
+          club_id: this.club_id,
+          index: this.index_manageActivities
+        }
+      })
+      if (this.index_manageActivities !== -1) {
+        this.index_manageActivities = res.data.data.next_index
+        this.manage_activities = this.manage_activities.concat(res.data.data.activity_list)
+      } else {
+        wx.showToast({
+          title: '没有更多了',
+          icon: 'success',
+          duration: 2000
+        })
+      }
+      // this.manage_activities = [
+      //   {
+      //     name: 'tars学习活动1',
+      //     activity_id: '123',
+      //     sponor: 'tars小助手huang',
+      //     club_name: '学习俱乐部',
+      //     start_time: '2019_08_26 19:36:00',
+      //     stop_time: '2019_08_31 24:00:00',
+      //     registry_start_time: '2019_08_26 20:00:00',
+      //     registry_stop_time: '2019_08_31 20:00:00',
+      //     target_id: '0',
+      //     content: 'tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动tars学习活动'
+      //   }
+      // ]
+      this.manage_activities.forEach(item => {
+        item.start_time = item.start_time.substr(0, 16)
+        item.start_time = item.start_time.replace(/-/g, '.')
+        item.stop_time = item.stop_time.substr(0, 16)
+        item.stop_time = item.stop_time.replace(/-/g, '.')
+        item.registry_start_time = item.registry_start_time.substr(0, 16)
+        item.registry_start_time = item.registry_start_time.replace(/-/g, '.')
+        item.registry_stop_time = item.registry_stop_time.substr(0, 16)
+        item.registry_stop_time = item.registry_stop_time.replace(/-/g, '.')
+      })
+    }
+  }
+</script>

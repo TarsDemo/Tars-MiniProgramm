@@ -1,0 +1,239 @@
+<style lang="less">
+  .swiper {
+    width: 100%;
+    height: 90%;
+    .swiper-item {
+      padding: 40rpx;
+      box-sizing: border-box;
+      .list {
+        position: relative;
+        display: flex;
+        width: 100%;
+        height: 100%;
+        align-items: center;
+        flex-direction: column;
+        background-color: #ffffff;
+        border-radius: 10rpx;
+        box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.08);
+        .image {
+          width: 100%;
+          height: 45%;
+          border-top-right-radius: 10rpx;
+          border-top-left-radius: 10rpx;
+        }
+        .title {
+          font-weight: 400;
+          font-size: 36rpx;
+          margin-top: 40rpx;
+        }
+        .intro {
+          font-size: 30rpx;
+          padding: 30rpx;
+          text-align: justify;
+        }
+        .entrance {
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          height: 160rpx;
+          border-top: 1px solid #F6F6F6;
+          navigator {
+            display: inline-block;
+            height: 60rpx;
+            border: 2rpx solid #1749DC;
+            border-radius: 10rpx;
+            color: #1749DC;
+            font-size: 28rpx;
+            line-height: 60rpx;
+            text-align: center;
+            padding-left: 20rpx;
+            padding-right: 20rpx;
+            margin-top: 50rpx;
+          }
+          .join_btn {
+            display: inline-block;
+            height: 60rpx;
+            border: 2rpx solid #1749DC;
+            border-radius: 10rpx;
+            color: #1749DC;
+            font-size: 28rpx;
+            line-height: 60rpx;
+            text-align: center;
+            padding-left: 20rpx;
+            padding-right: 20rpx;
+            margin-top: 50rpx;
+          }
+        }
+      }
+    }
+    .info-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 10rpx;
+      padding: 20rpx 20rpx 40rpx 20rpx;
+      .item {
+        display: flex;
+        flex-direction: row;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        text {
+          width: 200rpx;
+          height: 80rpx;
+          line-height: 80rpx;
+        }
+        input {
+          padding: 10rpx 20rpx;
+          height: 80rpx;
+          line-height: 80rpx;
+          border: 1px solid #F6F6F6;
+          border-radius: 10rpx;
+          color: #666;
+        }
+      }
+      .item.header {
+        font-weight: 400;
+        font-size: 50rpx;
+        height: 120rpx;
+        line-height: 80rpx;
+        color: #666666;
+      }
+      .introduction {
+        display: flex;
+        flex-direction: column;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        text {
+          width: 400rpx;
+        }
+      }
+    }
+  }
+</style>
+
+<template>
+  <view class="container">
+    <swiper class="swiper" bindchange="pageChange" current='{{currentPageIndex}}'>
+      <swiper-item class="swiper-item">
+        <view class="list">
+          <view class="info-box">
+            <view class="item header">社团名片</view>
+            <view class="item">
+              <text>社团名称:</text>
+              <text>{{club.name}}</text>
+            </view>
+            <view class="item">
+              <text>社团主席:</text>
+              <text>{{club.chairman}}</text>
+            </view>
+            <view class="item">
+              <text>创建时间:</text>
+              <text>{{club.create_time}}</text>
+            </view>
+            <view class="introduction">
+              <text>社团介绍:</text>
+              <text>{{club.introduction}}</text>
+            </view>
+          </view>
+          <view class="entrance">
+            <view class="join_btn" @tap='JoinClub'>
+              <text>加入社团</text>
+            </view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+</template>
+
+
+<script>
+  import wepy from 'wepy'
+  import api from '../../api/request'
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '社团详情',
+      'usingComponents': {
+        'van-tab': '../../components/vant/tab/index',
+        'van-tabs': '../../components/vant/tabs/index',
+        'van-collapse': '../../components/vant/collapse/index',
+        'van-collapse-item': '../../components/vant/collapse-item/index'
+      }
+    }
+    components = {}
+    data = {
+      wx_id: null,
+      isLogin: false,
+      club_id: null,
+      club: null
+    }
+
+    methods = {
+      async JoinClub() {
+        wepy.showToast({
+          title: '已发送申请',
+          icon: 'success',
+          duration: 2000
+        })
+        const res = await api.request({
+          url: api.uri.hasAppliedClub,
+          method: 'POST',
+          data: {
+            club_id: this.club_id,
+            wx_id: this.wx_id,
+            just_in_club: false
+          }
+        })
+        if (res.data.status === 400) {
+          wx.showToast({
+            title: '服务器错误' + res.data.errmsg,
+            icon: 'none',
+            duration: 3000
+          })
+        } else if (res.data.data.isInClub === false) {
+          api.request({
+            url: api.uri.joinClub,
+            method: 'POST',
+            data: {
+              club_id: this.club_id,
+              wx_id: this.wx_id
+            }
+          })
+        } else {
+          wx.showToast({
+            title: '你已经申请过该社团',
+            icon: 'none',
+            duration: 3000
+          })
+        }
+      }
+    }
+
+    onShow() {}
+
+    async onLoad(options) {
+      console.log(options)
+      this.club_id = options.club_id
+      this.getUser()
+      this.getClub()
+    }
+    // 获取社团信息
+    async getClub() {
+      this.club = wepy.getStorageSync(this.club_id)
+      // 时间格式化
+      this.club.create_time = this.club.create_time.substr(0, 10)
+      this.club.create_time = this.club.create_time.replace(/-/g, '.')
+    }
+
+    // 获取用户信息
+    async getUser() {
+      this.wx_id = wepy.getStorageSync('wx_id')
+    }
+  }
+</script>

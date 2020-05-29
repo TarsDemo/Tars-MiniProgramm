@@ -1,0 +1,185 @@
+<style lang="less">
+  .setting {
+    padding: 40rpx;
+    .setting-box {
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+      border-radius: 10rpx;
+      padding: 20rpx 20rpx 40rpx 20rpx;
+      .item {
+        display: flex;
+        flex-direction: row;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        text {
+          width: 200rpx;
+          height: 80rpx;
+          line-height: 80rpx;
+        }
+        .receiver {
+          padding: 10rpx 20rpx;
+          width: 400rpx;
+          height: 70rpx;
+          line-height: 70rpx;
+          border: 1px solid #F6F6F6;
+          border-radius: 10rpx;
+          color: #666;
+        }
+        .content {
+          padding: 10rpx 20rpx;
+          height: 500rpx;
+          width: 400rpx;
+          line-height: 80rpx;
+          border: 1px solid #F6F6F6;
+          border-radius: 10rpx;
+          color: #666;
+        }
+      }
+      .item.header {
+        justify-content: center;
+        .title {
+          font-weight: 400;
+          font-size: 40rpx;
+          height: 80rpx;
+          line-height: 80rpx;
+          color: #f06292;
+        }
+      }
+      .submit {
+        display: flex;
+        justify-content: center;
+        .btn {
+          margin-top: 20rpx;
+          margin-left: 20rpx;
+          width: 200rpx;
+          text-align: center;
+          border-radius: 10rpx;
+          color: #ffffff;
+          padding: 10rpx 20rpx;
+          background-color: #f06292;
+      }
+      }
+    }
+  }
+</style>
+
+<template>
+  <view class="container">
+    <view class="setting">
+      <view class="setting-box">
+        <view class="item header">
+          <view class="title">我的表白❤</view>
+        </view>
+        <view class="item">
+          <text>表白对象：</text>
+          <textarea class="receiver" bindblur="bindReceiver" type="text"/>
+        </view>
+        <view class="item">
+          <text>表白内容：</text>
+          <textarea class="content" bindblur="bindContent" type="text" maxlength="1000"/>
+        </view>
+        <view class='item'>
+          <text>表白匿名：</text>
+          <van-switch checked="{{checked}}" bind:change="onChange" active-color="#f06292"/>
+        </view>
+        <view class="submit">
+          <text class="btn" @tap="send">提交 表白</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import api from '../../api/request'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '编写表白',
+      'usingComponents': {
+        'van-switch': '../../components/vant/switch/index'
+      }
+    }
+    components = {
+    }
+    data = {
+      checked: true,
+      setting: {}
+    }
+    methods = {
+      onChange({detail}) {
+        this.checked = detail
+      },
+      bindReceiver(event) {
+        this.setting.receiver = event.detail.value
+        console.log(this.setting.receiver)
+      },
+      bindContent(event) {
+        this.setting.content = event.detail.value
+        console.log(this.setting.content)
+      },
+      async send() {
+        wepy.showModal({
+          title: '温馨提示',
+          content: '确认提交表白？',
+          confirmText: '确认',
+          confirmColor: '#1749DC'
+        }).then(res => {
+          if (res.confirm) {
+            console.log('用户点击确定')
+            this.setInfo()
+          } else if (res.cancel) {
+            console.log('用户点击取消')
+          }
+        })
+      }
+    }
+    async setInfo() {
+      if (!(this.setting.receiver && this.setting.content)) {
+        wepy.showModal({
+          title: '警告!',
+          content: '内容不完整',
+          confirmText: '确定',
+          confirmColor: '#1749DC',
+          showCancel: false
+        }).then(res => {
+        })
+      } else {
+        const uid = wepy.getStorageSync('wx_id')
+        const res = await api.request({
+          url: api.uri.sendConfessions,
+          method: 'POST',
+          data: {
+            receiver: this.setting.receiver,
+            content: this.setting.content,
+            anonymous: this.checked,
+            user_id: uid
+          }
+        })
+        if (res.data.status !== 200) {
+          wepy.showToast({
+            title: res.data.errmsg,
+            icon: 'none',
+            duration: 2000
+          })
+        } else {
+          await wepy.showToast({
+            title: '已发送',
+            icon: 'success',
+            duration: 2000
+          }).then(res => {
+            // 调回上一页
+            // wepy.navigateBack({
+            //   delta: 1
+            // })
+          })
+        }
+      }
+    }
+    async onShow() {
+    }
+    async onLoad() {
+    }
+  }
+</script>

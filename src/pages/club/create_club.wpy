@@ -1,0 +1,263 @@
+<style lang="less">
+  .swiper {
+    width: 100%;
+    height: 90%;
+    .swiper-item {
+      padding: 40rpx;
+      box-sizing: border-box;
+      .list {
+        position: relative;
+        display: flex;
+        width: 100%;
+        height: 80%;
+        align-items: center;
+        flex-direction: column;
+        background-color: #ffffff;
+        border-radius: 10rpx;
+        box-shadow: 0 0 12px 2px rgba(0, 0, 0, 0.08);
+        .image {
+          width: 100%;
+          height: 45%;
+          border-top-right-radius: 10rpx;
+          border-top-left-radius: 10rpx;
+        }
+        .title {
+          font-weight: 400;
+          font-size: 36rpx;
+          margin-top: 40rpx;
+        }
+        .intro {
+          font-size: 30rpx;
+          padding: 30rpx;
+          text-align: justify;
+        }
+        .entrance {
+          position: absolute;
+          left: 0;
+          bottom: 0;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          width: 100%;
+          height: 160rpx;
+          navigator {
+            display: inline-block;
+            height: 60rpx;
+            border: 2rpx solid #1749DC;
+            border-radius: 10rpx;
+            color: #1749DC;
+            font-size: 28rpx;
+            line-height: 60rpx;
+            text-align: center;
+            padding-left: 20rpx;
+            padding-right: 20rpx;
+            margin-top: 50rpx;
+          }
+          .join_btn {
+            display: inline-block;
+            height: 60rpx;
+            border: 2rpx solid #1749DC;
+            border-radius: 10rpx;
+            color: #1749DC;
+            font-size: 28rpx;
+            line-height: 60rpx;
+            text-align: center;
+            padding-left: 20rpx;
+            padding-right: 20rpx;
+            margin-top: 50rpx;
+          }
+        }
+      }
+    }
+    .info-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 10rpx;
+      width: 100%;
+      padding: 20rpx 20rpx 40rpx 20rpx;
+      .header {
+        font-weight: 400;
+        font-size: 50rpx;
+        height: 120rpx;
+        line-height: 80rpx;
+        color: #666666;
+        display: flex;
+        flex-direction: row;
+      }
+      .item {
+        display: flex;
+        flex-direction: row;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        width: 90%;
+        justify-content: space-between;
+        text {
+          height: 80rpx;
+          line-height: 80rpx;
+        }
+        .club_name {
+          height: 80rpx;
+          line-height: 80rpx;
+          padding: 0rpx 15rpx;
+        }
+        .input_club_name {
+          height: 80rpx;
+          line-height: 80rpx;
+          padding: 0rpx 15rpx;
+          max-width: 300rpx;
+        }
+      }
+      .rich_text {
+        display: flex;
+        flex-direction: column;
+        padding: 20rpx;
+        border-bottom: 1px solid #F6F6F6;
+        width: 90%;
+        .time {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+        }
+        .club_intro {
+          display: flex;
+          flex-direction: row;
+          justify-content: space-between;
+          text {
+            width: 80%;
+          }
+          textarea {
+            display: inline-block;
+            width: 300rpx;
+          }
+          .placeholder_intro {
+            color: #b0b0b0; 
+            font-size: 0.7rem;
+            font-weight: 100;
+          }
+        }
+      }
+      .placeholder_class {
+        color: #666666; 
+        font-size: 0.7rem;
+        text-align: center;
+      }
+    }
+  }
+</style>
+
+<template>
+  <view class="container">
+    <swiper class="swiper" bindchange="pageChange" current='{{currentPageIndex}}'>
+      <swiper-item class="swiper-item">
+        <view class="list">
+          <view class="info-box">
+            <view class="header"><text>建立新社团</text></view>
+            <view class="item">
+              <text>社团名称:</text>
+              <input class="input_club_name" placeholder="不得超过10字" placeholder-class="placeholder_class" maxlength="10" bindblur="input_name" focus="true"/>
+            </view>
+            <view class="rich_text">
+              <text>社团介绍:</text>
+              <view class="club_intro">
+                <textarea placeholder="不得超过50字" placeholder-class="placeholder_intro" maxlength="50" bindblur="input_club_intro" focus="true" auto-height="true"/>
+              </view>  
+            </view>
+          </view>
+          <view class="entrance">
+            <view class="join_btn" @tap="send">
+              <text>提交信息</text>
+            </view>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+  </view>
+</template>
+
+
+<script>
+  import wepy from 'wepy'
+  import api from '../../api/request'
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: '新建社团'
+    }
+    components = {}
+    data = {
+      club: {},
+      wx_id: ''
+    }
+
+    methods = {
+      input_name(event) {
+        this.club.name = event.detail.value
+      },
+      input_club_intro(event) {
+        this.club.club_intro = event.detail.value
+        this.$apply()
+      },
+      async send() {
+        wepy.showModal({
+          title: '温馨提示',
+          content: '确认提交社团信息？',
+          confirmText: '确认',
+          confirmColor: '#1749DC'
+        }).then(res => {
+          if (res.confirm) {
+            console.log('用户点击确定')
+            this.createClub()
+          } else if (res.cancel) {
+            console.log('用户点击取消')
+          }
+        })
+      }
+    }
+    async createClub() {
+      if (!(this.club.name && this.club.club_intro)) {
+        wepy.showModal({
+          title: '警告!',
+          content: '内容不完整',
+          confirmText: '确定',
+          confirmColor: '#1749DC',
+          showCancel: false
+        }).then(res => {
+        })
+      } else {
+        // 新建社团
+        const res = await api.request({
+          url: api.uri.createClub,
+          method: 'POST',
+          data: {
+            name: this.club.name,
+            chairman: this.wx_id,
+            introduction: this.club.club_intro
+          }
+        })
+        if (res.data.status === 400) {
+          console.log(res.data.errmsg)
+          wx.showToast({
+            title: '服务器错误' + res.data.errmsg,
+            icon: 'none',
+            duration: 3000
+          })
+        } else {
+          wepy.showModal({
+            title: '温馨提示',
+            content: '发布成功',
+            confirmText: '完成',
+            confirmColor: '#1749DC',
+            showCancel: false
+          })
+        }
+      }
+    }
+
+    onShow() {}
+
+    onLoad() {
+      this.wx_id = wepy.getStorageSync('wx_id')
+    }
+  }
+</script>
